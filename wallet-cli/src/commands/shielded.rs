@@ -8,13 +8,26 @@ use proto::api::{
     IvkDecryptAndMarkParameters, IvkDecryptParameters, Note, OvkDecryptParameters, ReceiveNote, SpendNote,
 };
 use proto::api_grpc::{Wallet, WalletClient};
-use proto::core::{OutputPoint, OutputPointInfo};
+use proto::core::{OutputPoint, OutputPointInfo, ReceiveDescription, ShieldedTransferContract};
 use protobuf::Message;
+use rand::rngs::OsRng;
 use serde_json::json;
+use std::convert::TryInto;
+use ztron_primitives::prelude::{
+    compute_note_commitment, generate_r, rcm_to_bytes, Memo, OutgoingViewingKey, PaymentAddress, SaplingNoteEncryption,
+    ValueCommitment, JUBJUB,
+};
+use ztron_proofs::{
+    prelude::load_parameters,
+    sapling::{SaplingProvingContext},
+};
+// use ff::{PrimeField, PrimeFieldRepr, Field};
 
 use crate::error::Error;
 use crate::utils::client::new_grpc_client;
+use crate::utils::crypto;
 use crate::utils::jsont;
+use crate::utils::trx;
 
 pub fn new_shielded_address() -> Result<(), Error> {
     let (_, payload, _) = new_grpc_client()?
@@ -37,8 +50,122 @@ pub fn new_shielded_address() -> Result<(), Error> {
     Ok(())
 }
 
-pub fn debug() -> Result<(), Error> {
-    unimplemented!()
+pub fn debug(matches: &ArgMatches) -> Result<(), Error> {
+    let mut rng = OsRng;
+
+    // TODO static lazy
+    eprint!("! loading ztron parameters ... ");
+    let (_, _, sapling_output_params, _) = load_parameters();
+    eprintln!("ok");
+
+    let to: PaymentAddress =
+        "ztron1ze4ytt0pz9t6lafnhptnxted323z2rhtwjvhdq7h3vk3pv9e0ask3j30sn3j93ehx35u7ku7q0d".parse()?;
+    println!("addr => {:}", to);
+
+    let value = 20_000_000;
+    let memo = "are you joking ...";
+    let rcm = generate_r();
+    println!("rcm => {:}", rcm_to_bytes(rcm).encode_hex::<String>());
+
+    let note = to.create_note(value, rcm, &JUBJUB).unwrap();
+
+    // generate output proof
+
+    // librustzcash_compute_cm
+    let note_commitment = compute_note_commitment(&note); // note.cm(&JUBJUB);
+    println!("note_commitment => {:}", note_commitment.encode_hex::<String>());
+
+    // encrypt pk_d => c_enc
+    // let ovk = OutgoingViewingKey([0; 32]);
+    let ovk = OutgoingViewingKey([
+        3, 12, 140, 43, 197, 159, 179, 235, 138, 251, 4, 122, 142, 164, 176, 40, 116, 61, 35, 231, 211, 140, 111, 163,
+        9, 8, 53, 132, 49, 226, 49, 77,
+    ]);
+
+    let enc = SaplingNoteEncryption::new(
+        ovk,
+        note.clone(),
+        to.clone(),
+        Memo::from_bytes(memo.as_bytes()).unwrap_or_default(),
+        &mut rng,
+    );
+
+    let enc_ciphertext = enc.encrypt_note_plaintext();
+    println!("c_enc => {:?}", (&enc_ciphertext[..]).encode_hex::<String>());
+    assert_eq!(enc_ciphertext.len(), 580);
+
+    // epk
+    let mut epk = vec![];
+    enc.epk().write(&mut epk)?;
+    println!("epk => {:?}", epk.encode_hex::<String>());
+
+    // zkproof, value_commitment
+    let mut ctx = SaplingProvingContext::new();
+    let (proof, vc) = ctx.output_proof(*enc.esk(), to, rcm, value, &sapling_output_params, &JUBJUB);
+
+    let mut zkproof = vec![];
+    proof.write(&mut zkproof)?;
+    println!("proof => {:?}", zkproof.encode_hex::<String>());
+
+    let mut value_commitment = vec![];
+    vc.write(&mut value_commitment)?;
+    println!("value_commitment => {:}", value_commitment.encode_hex::<String>());
+
+    // c_out
+    let cv = ValueCommitment { value, randomness: rcm };
+    let out_ciphertext = enc.encrypt_outgoing_plaintext(&cv.cm(&JUBJUB).into(), &note.cm(&JUBJUB));
+
+    println!("c_out => {:?}", (&out_ciphertext[..]).encode_hex::<String>());
+    assert_eq!(out_ciphertext.len(), 80);
+
+    // build transaction
+    let receive_description = ReceiveDescription {
+        value_commitment,
+        note_commitment,
+        epk,
+        c_enc: (&enc_ciphertext[..]).to_owned(),
+        c_out: (&out_ciphertext[..]).to_owned(),
+        zkproof,
+        ..Default::default()
+    };
+
+    println!("\n==>\n{:?}", receive_description);
+
+    let mut shielded_contract = ShieldedTransferContract::new();
+
+    let from = "TJRabPrwbZy45sbavfcjinPJC18kjpRTv8".parse::<Address>()?;
+    shielded_contract.set_transparent_from_address(from.as_ref().to_owned());
+    shielded_contract.set_from_amount(30_000_000);
+
+    shielded_contract.set_receive_description(vec![receive_description].into());
+
+    // (all receive )
+    const ZEN_TOKEN_ID: &str = "1000016";
+    let value_balance = -20_000_000_i64; // spend - receive
+
+    let mut data = vec![];
+    data.extend_from_slice(&crypto::sha256(ZEN_TOKEN_ID.as_bytes())[..]);
+    let mut raw = trx::TransactionHandler::handle(shielded_contract.clone(), matches).to_raw_transaction()?;
+    data.extend(raw.write_to_bytes()?);
+
+    let sighash = crypto::sha256(&data);
+    // build signature: librustzcashSaplingBindingSig
+    let mut binding_signature = vec![];
+    // getShieldTransactionHashIgnoreTypeException
+    let sig = ctx
+        .binding_sig(value_balance.try_into().unwrap(), &sighash, &JUBJUB)
+        .expect("binding signature ok");
+    sig.write(&mut binding_signature)?;
+    println!("binding_signature => {:?}", binding_signature.encode_hex::<String>());
+
+    // createSpendAuth
+    // librustzcashSaplingSpendSig
+    // no-spends, only when ask set
+    shielded_contract.set_binding_signature(binding_signature);
+
+    raw.mut_contract()[0].mut_parameter().value = shielded_contract.write_to_bytes()?;
+
+    trx::TransactionHandler::<ShieldedTransferContract>::resume(raw, matches)
 }
 
 pub fn scan_note_and_check_spend_status() -> Result<(), Error> {
@@ -295,7 +422,7 @@ pub fn main(matches: &ArgMatches) -> Result<(), Error> {
     match matches.subcommand() {
         ("create_address", _) => new_shielded_address(),
         ("scan", Some(arg_matches)) => scan_notes(arg_matches),
-        ("debug", _) => debug(),
+        ("debug", Some(arg_matches)) => debug(arg_matches),
         ("debug1", _) => debug_taddr_to_zaddr(),
         ("debug2", _) => debug_zaddr_to_taddr(),
         ("debug3", _) => debug_zaddr_to_taddr(),

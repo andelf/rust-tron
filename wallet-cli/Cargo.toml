@@ -28,3 +28,5 @@ ethabi = "9"
 proto = { path = "../proto" }
 keys = { path = "../keys" }
 walletd = { path = "../walletd" }
+ztron_primitives = { path = "../ztron_primitives" }
+ztron_proofs = { path = "../ztron_proofs" }
