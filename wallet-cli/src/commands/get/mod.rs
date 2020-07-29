@@ -36,7 +36,7 @@ fn get_next_maintenance_time() -> Result<(), Error> {
     eprintln!("! Next Maintenance: {}", payload.num);
     eprintln!(
         "! Timestamp: {}",
-        Local.timestamp(payload.num / 1_000, (payload.num % 1_000 * 1_000) as u32)
+        Local.timestamp(payload.num / 1_000, (payload.num % 1_000 * 1_000_000) as u32)
     );
     Ok(())
 }
