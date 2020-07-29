@@ -405,11 +405,11 @@ fn get_account_resource(name: &str) -> Result<(), Error> {
     }
     eprintln!(
         "! Energy By Freezing    1_TRX = {:.5}",
-        payload.TotalEnergyLimit as f64 / payload.TotalEnergyWeight as f64
+        payload.TotalEnergyLimit as f64 / (payload.TotalEnergyWeight as f64 + 1.0)
     );
     eprintln!(
         "! Bandwidth By Freezing 1_TRX = {:.5}",
-        payload.TotalNetLimit as f64 / payload.TotalNetWeight as f64
+        payload.TotalNetLimit as f64 / (payload.TotalNetWeight as f64 + 1.0)
     );
 
     // delegation query
