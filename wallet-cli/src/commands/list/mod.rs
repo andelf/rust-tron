@@ -65,11 +65,13 @@ fn list_assets() -> Result<(), Error> {
 }
 
 pub fn list_proposals() -> Result<(), Error> {
-    let payload = executor::block_on(
+    let mut payload = executor::block_on(
         client::GRPC_CLIENT
             .list_proposals(Default::default(), EmptyMessage::new())
             .drop_metadata(),
     )?;
+    let reversed = payload.take_proposals().into_iter().rev().collect();
+    payload.set_proposals(reversed);
     let mut proposals = serde_json::to_value(&payload)?;
 
     proposals["proposals"]
