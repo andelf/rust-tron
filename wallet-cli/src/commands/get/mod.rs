@@ -27,6 +27,20 @@ fn node_info() -> Result<(), Error> {
     Ok(())
 }
 
+fn get_next_maintenance_time() -> Result<(), Error> {
+    let payload = executor::block_on(
+        client::GRPC_CLIENT
+            .get_next_maintenance_time(Default::default(), Default::default())
+            .drop_metadata(),
+    )?;
+    eprintln!("! Next Maintenance: {}", payload.num);
+    eprintln!(
+        "! Timestamp: {}",
+        Local.timestamp(payload.num / 1_000, (payload.num % 1_000 * 1_000) as u32)
+    );
+    Ok(())
+}
+
 fn visit_node(ip: &str, edges: &mut HashSet<(String, String)>) -> Result<(), Error> {
     let mut stack = vec![ip.to_owned()];
     let mut visited = HashSet::new();
@@ -612,6 +626,7 @@ pub fn main(matches: &ArgMatches) -> Result<(), Error> {
             let addr = arg_matches.value_of("ADDR").expect("required in cli.yml; qed");
             get_brokerage_info(&addr)
         }
+        ("maintenance", _) => get_next_maintenance_time(),
         _ => {
             eprintln!("{}", matches.usage());
             Err(Error::Runtime("error parsing command line"))

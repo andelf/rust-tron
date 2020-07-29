@@ -155,6 +155,8 @@ subcommands:
                         - ADDR:
                               help: The SR address to get brokerage info
                               required: true
+              - maintenance:
+                    about: Get next maintenance time
 
     - set:
           about: Set or update the blockchain state
