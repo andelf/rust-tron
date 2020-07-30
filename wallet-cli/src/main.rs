@@ -44,6 +44,7 @@ fn main() -> Result<(), Error> {
         ("asset", Some(arg_matches)) => commands::asset::main(arg_matches),
         ("contract", Some(arg_matches)) => commands::contract::main(arg_matches),
         ("transfer", Some(arg_matches)) => commands::transfer::main(arg_matches),
+        ("batch", Some(arg_matches)) => commands::batch::main(arg_matches),
         ("sign", Some(arg_matches)) => commands::sign::main(arg_matches),
         ("wallet", Some(arg_matches)) => commands::wallet::main(arg_matches),
         ("create", Some(arg_matches)) => commands::create::main(arg_matches),

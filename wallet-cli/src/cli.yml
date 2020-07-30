@@ -1512,6 +1512,42 @@ subcommands:
 
     # exchange
 
+    - batch:
+          about: Batch send transactions
+          args:
+              - SENDER:
+                    help: The account sending transactions
+                    required: true
+              - BATCH:
+                    help: Path to transactions file
+                    required: true
+              - private-key:
+                    help: The private key used for signing
+                    short: K
+                    long: private-key
+                    takes_value: true
+                    conflicts_with:
+                        - account
+              - expiration:
+                    help: Set the time in seconds before a transaction expires
+                    short: x
+                    long: expiration
+                    takes_value: true
+                    # default_value: "60"
+              - fee-limit:
+                    help: Maximum value of TRX allowed consumed
+                    long: fee-limit
+                    takes_value: true
+              - ref-block:
+                    help: Set the reference block num or block id used for TAPOS (Transaction as Proof-of-Stake)
+                    short: r
+                    long: ref-block
+                    takes_value: true
+              - permission-id:
+                    help: Permission id used by transaction
+                    long: permission-id
+                    takes_value: true
+                    possible_values: ["0", "2", "1"]
     - transfer:
           about: Transfer a TRX token
           args:
