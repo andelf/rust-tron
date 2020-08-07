@@ -29,6 +29,7 @@ pub fn run(addr: &str) -> Result<(), Error> {
     contract["origin_address"] = json!(jsont::bytes_to_hex_string(&contract["origin_address"]));
     contract["bytecode"] = json!(jsont::bytes_to_hex_string(&contract["bytecode"]));
     contract["code_hash"] = json!(jsont::bytes_to_hex_string(&contract["code_hash"]));
+    // NOTE: Only available when this contract is created by CREATE or CREATE2 opcode.
     contract["trx_hash"] = json!(jsont::bytes_to_hex_string(&contract["trx_hash"]));
 
     println!("{}", serde_json::to_string_pretty(&contract)?);
