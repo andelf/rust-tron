@@ -1,15 +1,11 @@
 # rust-tron
 
-Rust implementation of the Tron whitepaper.
+Rust implementation of the Tron gRPC Client.
 
 This project is under active development.
 
 - [x] wallet-cli (the full feature wallet/rpc client)
   - [x] walletd (the wallet daemon)
-- [ ] node-cli, under active development
-  - [x] sync with java-tron node
-  - [ ] transaction handling
-
 ## TODOs
 
 - [x] wallet-cli
@@ -17,45 +13,6 @@ This project is under active development.
     - [x] demo works
     - [ ] shielded notes management
     - [ ] real subcommand
-
-- [ ] full Tron Protocol implementation
-  - [x] ~~joking~~
-  - [x] proto2: refactor the protobuf / ~~gRPC~~
-    - your protobuf and gRPC definition sucks
-  - [x] primitives
-    - [x] use primitive-types
-    - [x] Address, PublicKey, PrivateKey, Signature
-  - [ ] config file
-    - your config file sucks
-    - [x] genesis block parsing
-    - [x] toml config file parsing
-    - [ ] organize chain parameters
-  - [ ] discover protocol
-    - [x] demo works
-  - [ ] channel protocol
-    - [x] demo works
-    - [x] sync
-    - [ ] minor bug fix, timeout error
-  - [ ] chain
-    - [x] Block / Transaction
-  - [ ] chainbase
-    - your original chainbase design sucks
-    - [ ] memory
-    - [ ] RocksDB
-  - [ ] mempool
-  - [ ] consensus
-  - [ ] EVM / TVM
-    - [x] 3.7 TVM <https://github.com/andelf/evm>
-    - [x] 4.0 TVM with zksnark: `ztron` crate
-    - [ ] massive tests
-  - [ ] RPC replacement
-    - will not support gRPC
-    - might have json-rpc support
-  - [ ] shielded transaction
-    - [ ] ztron
-  - [ ] SM2 / SM3 support
-    - [x] [sm2](https://docs.rs/sm2/)
-    - [x] [sm3](https://docs.rs/sm3/)
 
 ## quickstart
 
