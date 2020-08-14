@@ -74,23 +74,49 @@ pub fn list_proposals() -> Result<(), Error> {
     payload.set_proposals(reversed);
     let mut proposals = serde_json::to_value(&payload)?;
 
+    let mut witnesses = executor::block_on(
+        client::GRPC_CLIENT
+            .list_witnesses(Default::default(), EmptyMessage::new())
+            .drop_metadata(),
+    )?;
+    let mut witnesses = witnesses.take_witnesses();
+    witnesses.sort_by_key(|wit| wit.get_voteCount());
+    let active_wit_addrs: Vec<_> = witnesses.iter().rev().map(|wit| wit.get_address()).take(27).collect();
+
     proposals["proposals"]
         .as_array_mut()
         .unwrap()
         .iter_mut()
         .map(|proposal| {
-            proposal["proposer_address"] = json!(jsont::bytes_to_hex_string(&proposal["proposer_address"]));
+            proposal["proposer_address"] = {
+                if active_wit_addrs.contains(&&jsont::bytes_to_bytes(&proposal["proposer_address"])[..]) {
+                    json!(format!(
+                        "{} - SR",
+                        keys::b58encode_check(jsont::bytes_to_bytes(&proposal["proposer_address"]))
+                    ))
+                } else {
+                    json!(format!(
+                        "{} - SRP",
+                        keys::b58encode_check(jsont::bytes_to_bytes(&proposal["proposer_address"]))
+                    ))
+                }
+            };
             proposal["approvals"]
                 .as_array_mut()
                 .unwrap()
                 .iter_mut()
                 .map(|val| {
-                    *val = json!(jsont::bytes_to_hex_string(val));
+                    *val = if active_wit_addrs.contains(&&jsont::bytes_to_bytes(val)[..]) {
+                        json!(format!("{} - SR", keys::b58encode_check(jsont::bytes_to_bytes(val))))
+                    } else {
+                        json!(format!("{} - SRP", keys::b58encode_check(jsont::bytes_to_bytes(&val))))
+                    };
                 })
                 .last();
         })
         .last();
     println!("{}", serde_json::to_string_pretty(&proposals["proposals"])?);
+
     Ok(())
 }
 

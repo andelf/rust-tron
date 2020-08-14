@@ -32,6 +32,14 @@ pub fn bytes_to_string(val: &serde_json::Value) -> String {
     String::from_utf8_lossy(&buf).into()
 }
 
+pub fn bytes_to_bytes(val: &serde_json::Value) -> Vec<u8> {
+    val.as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_i64().unwrap() as u8)
+        .collect::<Vec<_>>()
+}
+
 // pb: TransferContract
 pub fn fix_transfer_contract(val: &mut serde_json::Value) {
     val["owner_address"] = json!(bytes_to_hex_string(&val["owner_address"]));
