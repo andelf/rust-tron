@@ -1,6 +1,5 @@
 use chrono::{Local, TimeZone};
 use futures::executor;
-use hex::FromHex;
 use keys::Address;
 use proto::api::BytesMessage;
 use proto::core::{
@@ -18,7 +17,7 @@ use crate::utils::trx;
 
 pub fn get_transaction(id: &str) -> Result<(), Error> {
     let mut req = BytesMessage::new();
-    req.value = Vec::from_hex(id)?;
+    req.value = parse_hex(id)?;
 
     let mut payload = executor::block_on(
         client::GRPC_CLIENT
@@ -51,6 +50,8 @@ pub fn get_transaction(id: &str) -> Result<(), Error> {
     let sender = trx::extract_owner_address_from_parameter(payload.get_raw_data().get_contract()[0].get_parameter())?;
     eprintln!("! Sender Address(base58check):   {}", sender);
 
+    // eprintln!("Raw data => {}", hex::encode(payload.get_raw_data().write_to_bytes()?));
+
     if payload.get_raw_data().get_contract()[0].get_field_type() == ContractType::TriggerSmartContract &&
         payload.get_ret()[0].get_ret() == ResultCode::SUCESS
     {
@@ -77,7 +78,7 @@ pub fn get_transaction(id: &str) -> Result<(), Error> {
 
 pub fn get_transaction_info(id: &str) -> Result<(), Error> {
     let mut req = BytesMessage::new();
-    req.value = Vec::from_hex(id)?;
+    req.value = parse_hex(id)?;
 
     let payload = executor::block_on(
         client::GRPC_CLIENT
@@ -166,4 +167,12 @@ fn pprint_contract_call_data(contract: &Address, data: &str) -> Result<(), Error
             }
             Ok(())
         })
+}
+
+fn parse_hex(s: &str) -> Result<Vec<u8>, Error> {
+    if s.starts_with("0x") {
+        Ok(hex::decode(&s[2..])?)
+    } else {
+        Ok(hex::decode(s)?)
+    }
 }
