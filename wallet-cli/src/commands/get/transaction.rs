@@ -1,4 +1,4 @@
-use chrono::{Local, TimeZone};
+use chrono::{Local, TimeZone, Utc};
 use futures::executor;
 use keys::Address;
 use proto::api::BytesMessage;
@@ -39,13 +39,15 @@ pub fn get_transaction(id: &str) -> Result<(), Error> {
         );
     }
 
-    eprintln!(
-        "! Timestamp: {}",
-        Local.timestamp(
-            payload.get_raw_data().timestamp / 1_000,
-            (payload.get_raw_data().timestamp % 1_000 * 1_000_000) as _
-        )
-    );
+    if payload.get_raw_data().timestamp < Utc::now().timestamp_millis() {
+        eprintln!(
+            "! Timestamp: {}",
+            Local.timestamp(
+                payload.get_raw_data().timestamp / 1_000,
+                (payload.get_raw_data().timestamp % 1_000 * 1_000_000) as _
+            )
+        );
+    }
 
     let sender = trx::extract_owner_address_from_parameter(payload.get_raw_data().get_contract()[0].get_parameter())?;
     eprintln!("! Sender Address(base58check):   {}", sender);
