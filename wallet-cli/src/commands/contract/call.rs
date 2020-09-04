@@ -1,11 +1,11 @@
 //! Subcommand to call a contract.
 
 use clap::ArgMatches;
+use futures::executor;
 use hex::{FromHex, ToHex};
 use keys::Address;
 use proto::core::TriggerSmartContract;
 use serde_json::json;
-use futures::executor;
 
 use crate::error::Error;
 use crate::utils::abi;
@@ -48,7 +48,6 @@ pub fn main(matches: &ArgMatches) -> Result<(), Error> {
                 .collect::<Result<Vec<_>, Error>>()?;
             let mut data = (&abi::fnhash(method)[..]).to_owned();
             data.append(&mut abi::encode_params(&types, &values)?);
-            eprintln!("! data = {:}", data.encode_hex::<String>());
             data
         }
         (None, Some(data_hex)) => Vec::from_hex(data_hex)?,
@@ -56,6 +55,10 @@ pub fn main(matches: &ArgMatches) -> Result<(), Error> {
         (None, None) => Vec::from(&abi::fnhash(method)[..]),
         (_, _) => unreachable!("set conflicts in cli.yml; qed"),
     };
+
+    if !data.is_empty() {
+        eprintln!("! DATA = {:}", data.encode_hex::<String>());
+    }
 
     let mut trigger_contract = TriggerSmartContract {
         owner_address: sender.as_bytes().to_owned(),
