@@ -290,6 +290,7 @@ impl<'a, C: ContractPbExt> TransactionHandler<'a, C> {
                 eprintln!("! Signing using wallet key {:}", owner_address);
                 sign_digest(&digest, &owner_address)?
             };
+            // NOTE: signature can have arbitrary surfix.
             signatures.push(signature);
         }
 

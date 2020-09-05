@@ -1231,6 +1231,23 @@ subcommands:
                               takes_value: true
                               conflicts_with:
                                   - ARGS
+                        - value:
+                              help: Amount of TRX to send to contract while calling
+                              long: value
+                              takes_value: true
+                              value_name: AMOUNT
+                        - token-id:
+                              help: TRC10 token id to send to contract
+                              long: token-id
+                              takes_value: true
+                              value_name: ID
+                        - token-value:
+                              help: Amount of TRC10 token to send to contract
+                              long: token-value
+                              takes_value: true
+                              value_name: AMOUNT
+                              requires:
+                                  - token-id
                         - memo:
                               help: The memo for the transaction
                               long: memo

@@ -81,7 +81,17 @@ pub fn main(matches: &ArgMatches) -> Result<(), Error> {
 
     let mut create_contract = CreateSmartContract::new();
     create_contract.set_owner_address(owner_address.as_bytes().to_owned());
+
+    if let Some(value) = matches.value_of("value") {
+        new_contract.set_call_value(trx::parse_amount_with_surfix(value, "TRX", 6)?);
+    }
     create_contract.set_new_contract(new_contract);
+
+    if let Some(token_id) = matches.value_of("token-id") {
+        let value = matches.value_of("token-value").expect("constraint in cli.yml; qed");
+        create_contract.set_token_id(token_id.parse()?);
+        create_contract.set_call_token_value(trx::parse_amount(value)?);
+    }
 
     let mut handler = trx::TransactionHandler::handle(create_contract, matches);
     handler.map_raw_transaction(|raw| raw.set_fee_limit(1_000_000));
