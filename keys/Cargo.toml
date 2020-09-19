@@ -1,15 +1,14 @@
 [package]
 name = "keys"
 version = "0.1.0"
-authors = ["Andelf <andelf@gmail.com>"]
+authors = ["OpenTron Developers <info@opentron.org>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 base58 = "0.1"
 hex = "0.4"
 sha2 = "0.9"
 sha3 = "0.9"
 digest = "0.9"
-parity-secp256k1 = "0.7"
+libsecp256k1 = "0.3"
 rand = "0.7"

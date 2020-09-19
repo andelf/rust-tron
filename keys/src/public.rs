@@ -1,39 +1,36 @@
-use hex::{FromHex, ToHex};
-use secp256k1::key::{PublicKey, SecretKey};
-use secp256k1::{Message, RecoverableSignature, RecoveryId, Secp256k1};
-use sha2::{Digest, Sha256};
+//! The Public Key.
+
 use std::convert::TryFrom;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
 
+use hex::{FromHex, ToHex};
+use secp256k1::{Message, PublicKey, PublicKeyFormat, RecoveryId, SecretKey};
+use sha2::{Digest, Sha256};
+
 use crate::error::Error;
 use crate::private::Private;
 use crate::signature::Signature;
 
-/// Raw public key
+/// Public key of Secp256k1.
 #[derive(Clone)]
 pub struct Public([u8; 64]);
 
 impl Public {
+    /// Verifies a signature of a digest.
     pub fn verify_digest(&self, digest: &[u8], signature: &Signature) -> Result<(), Error> {
-        let secp = Secp256k1::new();
+        let pub_key = PublicKey::parse_slice(&self.0, Some(PublicKeyFormat::Raw))?;
+        let sig = secp256k1::Signature::parse_slice(&signature[0..64])?;
 
-        // key format
-        const TAG_PUBKEY_FULL: u8 = 4;
-        let mut key = [0u8; 65];
-        key[0] = TAG_PUBKEY_FULL;
-        key[1..65].copy_from_slice(&self.0);
-        let pub_key = PublicKey::from_slice(&secp, &key)?;
-
-        let rsig =
-            RecoverableSignature::from_compact(&secp, &signature[0..64], RecoveryId::from_i32(signature[64] as i32)?)?;
-        let sig = rsig.to_standard(&secp);
-
-        secp.verify(&Message::from_slice(digest)?, &sig, &pub_key)
-            .map_err(Error::from)
+        if secp256k1::verify(&Message::parse_slice(digest)?, &sig, &pub_key) {
+            Ok(())
+        } else {
+            Err(Error::InvalidSignature)
+        }
     }
 
+    /// Verifies a signature of raw data.
     pub fn verify(&self, data: &[u8], signature: &Signature) -> Result<(), Error> {
         let mut hasher = Sha256::new();
         hasher.update(data);
@@ -42,18 +39,17 @@ impl Public {
         self.verify_digest(&digest, signature)
     }
 
+    /// Recovers a public key from signature and digest.
     pub fn recover_digest(digest: &[u8], signature: &Signature) -> Result<Public, Error> {
-        let secp = Secp256k1::new();
-        let rsig =
-            RecoverableSignature::from_compact(&secp, &signature[0..64], RecoveryId::from_i32(signature[64] as i32)?)?;
-        let pub_key = secp.recover(&Message::from_slice(digest)?, &rsig)?;
+        let sig = secp256k1::Signature::parse_slice(&signature[0..64])?;
+        let rec_id = RecoveryId::parse(signature[64])?;
 
-        let mut key = [0u8; 64];
-        key[..].copy_from_slice(&pub_key.serialize_vec(&secp, /* compressed */ false)[1..]);
+        let raw_pub_key = secp256k1::recover(&Message::parse_slice(digest)?, &sig, &rec_id)?;
 
-        Ok(Public(key))
+        Ok(Public::try_from(&raw_pub_key.serialize()[1..]).unwrap())
     }
 
+    /// Recovers a public key from signature and raw data.
     pub fn recover(data: &[u8], signature: &Signature) -> Result<Public, Error> {
         let mut hasher = Sha256::new();
         hasher.update(data);
@@ -62,18 +58,18 @@ impl Public {
         Public::recover_digest(&digest, signature)
     }
 
+    /// Public key from private key.
     pub fn from_private(private: &Private) -> Result<Public, Error> {
-        let secp = Secp256k1::new();
-
-        let secret_key = SecretKey::from_slice(&secp, private.as_bytes())?;
-        let pub_key = PublicKey::from_secret_key(&secp, &secret_key)?;
+        let secret_key = SecretKey::parse_slice(private.as_bytes())?;
+        let pub_key = PublicKey::from_secret_key(&secret_key);
 
         let mut key = [0u8; 64];
-        key[..].copy_from_slice(&pub_key.serialize_vec(&secp, /* compressed */ false)[1..]);
+        key[..].copy_from_slice(&pub_key.serialize()[1..]);
 
         Ok(Public(key))
     }
 
+    /// As raw public key bytes. Full format without a type prefix.
     pub fn as_bytes(&self) -> &[u8] {
         &self.0[..]
     }
