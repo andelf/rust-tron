@@ -8,6 +8,7 @@ use proto::core::{
 };
 use protobuf::Message;
 use std::convert::TryFrom;
+use std::str;
 
 use crate::error::Error;
 use crate::utils::abi;
@@ -141,6 +142,18 @@ pub fn get_transaction_info(id: &str) -> Result<(), Error> {
 
     if [ContractResult::OUT_OF_TIME, ContractResult::JVM_STACK_OVER_FLOW].contains(&payload.get_receipt().result) {
         eprintln!("!! All of Fee Limit Spent!");
+    }
+
+    if payload.get_receipt().result == ContractResult::REVERT {
+        if let Some(revert_msg) = payload.get_contractResult().get(0) {
+            // function selecter: 4 bytes
+            // memory offset of string: 32 bytes
+            // length of string: 32 bytes
+            // remain: the string
+            if revert_msg.len() > 4 + 32 + 32 {
+                eprintln!("! Revert Message: {:?}", str::from_utf8(&revert_msg[4+32+32..]))
+            }
+        }
     }
 
     Ok(())
