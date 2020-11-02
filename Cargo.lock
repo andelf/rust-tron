@@ -182,7 +182,7 @@ checksum = "cdcf67bb7ba7797a081cd19009948ab533af7c355d5caf1d08c777582d351e9c"
 [[package]]
 name = "bellman"
 version = "0.6.0"
-source = "git+https://github.com/andelf/librustzcash?branch=ztron#72010117131d87d564b5c4116f4931cb0e81fb23"
+source = "git+https://github.com/opentron/librustzcash?branch=tron#51d7394fb7a1f4950e4a5fc3f6cf8c13037de85c"
 dependencies = [
  "bit-vec",
  "blake2s_simd",
@@ -541,6 +541,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
+name = "equihash"
+version = "0.1.0"
+source = "git+https://github.com/opentron/librustzcash?branch=tron#51d7394fb7a1f4950e4a5fc3f6cf8c13037de85c"
+dependencies = [
+ "blake2b_simd",
+ "byteorder",
+]
+
+[[package]]
 name = "ethabi"
 version = "12.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -590,7 +599,7 @@ checksum = "e88a8acf291dafb59c2d96e8f59828f3838bb1a70398823ade51a84de6a6deed"
 [[package]]
 name = "ff"
 version = "0.6.0"
-source = "git+https://github.com/andelf/librustzcash?branch=ztron#72010117131d87d564b5c4116f4931cb0e81fb23"
+source = "git+https://github.com/opentron/librustzcash?branch=tron#51d7394fb7a1f4950e4a5fc3f6cf8c13037de85c"
 dependencies = [
  "byteorder",
  "ff_derive",
@@ -601,7 +610,7 @@ dependencies = [
 [[package]]
 name = "ff_derive"
 version = "0.6.0"
-source = "git+https://github.com/andelf/librustzcash?branch=ztron#72010117131d87d564b5c4116f4931cb0e81fb23"
+source = "git+https://github.com/opentron/librustzcash?branch=tron#51d7394fb7a1f4950e4a5fc3f6cf8c13037de85c"
 dependencies = [
  "addchain",
  "num-bigint",
@@ -815,7 +824,7 @@ dependencies = [
 [[package]]
 name = "group"
 version = "0.6.0"
-source = "git+https://github.com/andelf/librustzcash?branch=ztron#72010117131d87d564b5c4116f4931cb0e81fb23"
+source = "git+https://github.com/opentron/librustzcash?branch=tron#51d7394fb7a1f4950e4a5fc3f6cf8c13037de85c"
 dependencies = [
  "byteorder",
  "ff",
@@ -1300,7 +1309,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "pairing"
 version = "0.16.0"
-source = "git+https://github.com/andelf/librustzcash?branch=ztron#72010117131d87d564b5c4116f4931cb0e81fb23"
+source = "git+https://github.com/opentron/librustzcash?branch=tron#51d7394fb7a1f4950e4a5fc3f6cf8c13037de85c"
 dependencies = [
  "byteorder",
  "ff",
@@ -2475,13 +2484,14 @@ checksum = "e66366e18dc58b46801afbf2ca7661a9f59cc8c5962c29892b6039b4f86fa992"
 [[package]]
 name = "zcash_primitives"
 version = "0.2.0"
-source = "git+https://github.com/andelf/librustzcash?branch=ztron#72010117131d87d564b5c4116f4931cb0e81fb23"
+source = "git+https://github.com/opentron/librustzcash?branch=tron#51d7394fb7a1f4950e4a5fc3f6cf8c13037de85c"
 dependencies = [
  "aes 0.3.2",
  "blake2b_simd",
  "blake2s_simd",
  "byteorder",
  "crypto_api_chachapoly",
+ "equihash",
  "ff",
  "fpe",
  "hex 0.3.2",
@@ -2497,7 +2507,7 @@ dependencies = [
 [[package]]
 name = "zcash_proofs"
 version = "0.2.0"
-source = "git+https://github.com/andelf/librustzcash?branch=ztron#72010117131d87d564b5c4116f4931cb0e81fb23"
+source = "git+https://github.com/opentron/librustzcash?branch=tron#51d7394fb7a1f4950e4a5fc3f6cf8c13037de85c"
 dependencies = [
  "bellman",
  "blake2b_simd",
