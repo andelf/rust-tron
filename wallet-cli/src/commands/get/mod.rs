@@ -519,17 +519,46 @@ fn get_proposal_by_id(id: &str) -> Result<(), Error> {
     if payload.get_proposal_id() == 0 {
         return Err(Error::Runtime("proposal not found on chain"));
     }
-
     let mut proposal = serde_json::to_value(&payload)?;
-    proposal["proposer_address"] = json!(jsont::bytes_to_hex_string(&proposal["proposer_address"]));
+
+    let mut witnesses = executor::block_on(
+        client::GRPC_CLIENT
+            .list_witnesses(Default::default(), EmptyMessage::new())
+            .drop_metadata(),
+    )?;
+    let mut witnesses = witnesses.take_witnesses();
+    witnesses.sort_by_key(|wit| wit.get_voteCount());
+    let active_wit_addrs: Vec<_> = witnesses.iter().rev().map(|wit| wit.get_address()).take(27).collect();
+
+    proposal["proposer_address"] = {
+        if active_wit_addrs.contains(&&jsont::bytes_to_bytes(&proposal["proposer_address"])[..]) {
+            json!(format!(
+                "{} - SR",
+                keys::b58encode_check(jsont::bytes_to_bytes(&proposal["proposer_address"]))
+            ))
+        } else {
+            json!(format!(
+                "{} - SRP",
+                keys::b58encode_check(jsont::bytes_to_bytes(&proposal["proposer_address"]))
+            ))
+        }
+    };
     proposal["approvals"]
         .as_array_mut()
         .unwrap()
         .iter_mut()
-        .map(|addr| *addr = json!(jsont::bytes_to_hex_string(addr)))
-        .last();
+        .for_each(|val| {
+            *val = if active_wit_addrs.contains(&&jsont::bytes_to_bytes(val)[..]) {
+                json!(format!("{} - SR", keys::b58encode_check(jsont::bytes_to_bytes(val))))
+            } else {
+                json!(format!("{} - SRP", keys::b58encode_check(jsont::bytes_to_bytes(&val))))
+            };
+        });
 
     println!("{}", serde_json::to_string_pretty(&proposal)?);
+    eprintln!("! Created At: {}", Local.timestamp(payload.create_time / 1_000, 0));
+    eprintln!("! Expired At: {}", Local.timestamp(payload.expiration_time / 1_000, 0));
+
     Ok(())
 }
 
