@@ -1,3 +1,6 @@
+use std::collections::{HashMap, HashSet};
+use std::convert::TryFrom;
+
 use chrono::{Local, TimeZone};
 use clap::ArgMatches;
 use futures::executor;
@@ -6,8 +9,6 @@ use keys::Address;
 use proto::api::{BytesMessage, DelegatedResourceMessage, EmptyMessage, NumberMessage};
 use proto::core::Account;
 use serde_json::json;
-use std::collections::HashSet;
-use std::convert::TryFrom;
 
 use crate::error::Error;
 use crate::utils::client;
@@ -528,13 +529,19 @@ fn get_proposal_by_id(id: &str) -> Result<(), Error> {
     )?;
     let mut witnesses = witnesses.take_witnesses();
     witnesses.sort_by_key(|wit| wit.get_voteCount());
-    let active_wit_addrs: Vec<_> = witnesses.iter().rev().map(|wit| wit.get_address()).take(27).collect();
+    let active_wits: HashMap<&[u8], _> = witnesses
+        .iter()
+        .rev()
+        .take(27)
+        .map(|wit| (wit.get_address(), wit))
+        .collect();
 
     proposal["proposer_address"] = {
-        if active_wit_addrs.contains(&&jsont::bytes_to_bytes(&proposal["proposer_address"])[..]) {
+        if let Some(wit) = active_wits.get(&&jsont::bytes_to_bytes(&proposal["proposer_address"])[..]) {
             json!(format!(
-                "{} - SR",
-                keys::b58encode_check(jsont::bytes_to_bytes(&proposal["proposer_address"]))
+                "{} - SR - {}",
+                keys::b58encode_check(jsont::bytes_to_bytes(&proposal["proposer_address"])),
+                wit.url
             ))
         } else {
             json!(format!(
@@ -548,8 +555,12 @@ fn get_proposal_by_id(id: &str) -> Result<(), Error> {
         .unwrap()
         .iter_mut()
         .for_each(|val| {
-            *val = if active_wit_addrs.contains(&&jsont::bytes_to_bytes(val)[..]) {
-                json!(format!("{} - SR", keys::b58encode_check(jsont::bytes_to_bytes(val))))
+            *val = if let Some(wit) = active_wits.get(&&jsont::bytes_to_bytes(val)[..]) {
+                json!(format!(
+                    "{} - SR - {}",
+                    keys::b58encode_check(jsont::bytes_to_bytes(val)),
+                    wit.url
+                ))
             } else {
                 json!(format!("{} - SRP", keys::b58encode_check(jsont::bytes_to_bytes(&val))))
             };
