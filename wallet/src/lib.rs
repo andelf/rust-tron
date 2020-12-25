@@ -451,7 +451,7 @@ fn decrypt_wallet_json_to_zkeys(
 #[inline]
 fn random_salt() -> String {
     let rng = thread_rng();
-    rng.sample_iter(Alphanumeric).take(16).collect()
+    rng.sample_iter(Alphanumeric).take(16).map(|c| c as char).collect()
 }
 
 #[cfg(test)]

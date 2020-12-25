@@ -7,8 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tonic = "0.2"
-bytes = "0.5"
+tonic = "0.3"
+bytes = "1.0"
 prost = "0.6"
 
 tokio = { version = "0.2", features = ["rt-threaded", "time", "stream", "fs", "macros", "uds"] }
@@ -19,7 +19,7 @@ wallet = { path = "../wallet" }
 ztron = { git = "https://github.com/opentron/opentron" }
 
 [build-dependencies]
-tonic-build = "0.2"
+tonic-build = "0.3"
 
 [target.'cfg(unix)'.dependencies]
 daemonize = "0.4"

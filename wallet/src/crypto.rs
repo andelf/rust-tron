@@ -1,5 +1,5 @@
 use aes::Aes256;
-use cfb_mode::stream_cipher::{NewStreamCipher, StreamCipher};
+use cfb_mode::cipher::{NewStreamCipher, StreamCipher};
 use cfb_mode::Cfb;
 use sha2::{Digest, Sha512};
 use std::mem;

@@ -9,7 +9,7 @@ default = ["with-serde"]
 with-serde = ["protobuf/with-serde", "serde"]
 
 [dependencies]
-bytes = "0.5"
+bytes = "1.0"
 protobuf = { version = "2", features = ["with-serde"] }
 grpc = "0.8"
 grpc-protobuf = "0.8"
@@ -20,5 +20,5 @@ test = false
 doctest = false
 
 [build-dependencies]
-protoc-rust = "2.16"
+protoc-rust = "2.18"
 protoc-rust-grpc = "0.8"
