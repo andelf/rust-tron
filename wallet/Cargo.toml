@@ -15,4 +15,4 @@ rand = "0.7"
 hex = "0.4"
 
 keys = { path = "../keys" }
-ztron = { path = "../ztron" }
+ztron = { git = "https://github.com/opentron/opentron" }
