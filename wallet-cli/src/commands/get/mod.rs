@@ -465,7 +465,7 @@ fn get_account_resource(name: &str) -> Result<(), Error> {
                     "! Delegate Bandwidth From {} {}_TRX expiration={}",
                     Address::try_from(from).unwrap(),
                     delegate.frozen_balance_for_bandwidth as f64 / 1_000_000.0,
-                    Local.timestamp(delegate.frozen_balance_for_bandwidth / 1_000, 0)
+                    Local.timestamp(delegate.expire_time_for_bandwidth / 1_000, 0)
                 );
             }
         }
@@ -498,7 +498,7 @@ fn get_account_resource(name: &str) -> Result<(), Error> {
                     "! Delegate Bandwidth To {} {}_TRX expiration={}",
                     Address::try_from(to).unwrap(),
                     delegate.frozen_balance_for_bandwidth as f64 / 1_000_000.0,
-                    Local.timestamp(delegate.frozen_balance_for_bandwidth / 1_000, 0)
+                    Local.timestamp(delegate.expire_time_for_bandwidth / 1_000, 0)
                 );
             }
         }
