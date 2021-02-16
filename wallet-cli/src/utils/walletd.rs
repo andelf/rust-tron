@@ -57,7 +57,7 @@ pub fn get_walletd_pid() -> Result<c_int, Error> {
     Err(Error::Runtime("walletd process not found"))
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_walletd_pid() -> Result<c_int, Error> {
     let pid_file = PathBuf::from(WALLETD_PID_FILE);
 
