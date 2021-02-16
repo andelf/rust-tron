@@ -382,8 +382,8 @@ async fn tokio_main() -> Result<(), Box<dyn std::error::Error>> {
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     use std::fs::File;
 
-    let stdout = File::create("/tmp/walletd.out").unwrap();
-    let stderr = File::create("/tmp/walletd.err").unwrap();
+    let stdout = File::create("./.tmp.walletd.out").unwrap();
+    let stderr = File::create("./.tmp.walletd.err").unwrap();
 
     let daemonize = Daemonize::new().pid_file("./walletd.pid").stdout(stdout).stderr(stderr);
     match daemonize.start() {
