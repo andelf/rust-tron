@@ -159,8 +159,10 @@ impl FromStr for Address {
             Vec::from_hex(&s.as_bytes()[2..])
                 .map_err(|_| Error::InvalidAddress)
                 .and_then(Address::try_from)
-        } else if s == "_" {
+        } else if s == "_" || s == "0x0" {
             "410000000000000000000000000000000000000000".parse()
+        } else if s == "/USDT" {
+            "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".parse()
         } else {
             eprintln!("len={} prefix={:x}", s.len(), s.as_bytes()[0]);
             Err(Error::InvalidAddress)
