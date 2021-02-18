@@ -163,6 +163,8 @@ impl FromStr for Address {
             "410000000000000000000000000000000000000000".parse()
         } else if s == "/USDT" {
             "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".parse()
+        } else if s == "/OKS" {
+            "TWVVcRqRmpyAi9dASvTXrqnS7FrwvDezMn".parse()
         } else {
             eprintln!("len={} prefix={:x}", s.len(), s.as_bytes()[0]);
             Err(Error::InvalidAddress)
