@@ -1,20 +1,19 @@
 # rust-tron
 
-Rust implementation of the Tron gRPC Client, and a command line wallet.
+Rust implementation of the Tron gRPC API client, and a command line wallet.
 
 This project is under active development.
 
 - [x] wallet-cli (the full feature wallet/rpc client)
   - [x] walletd (the wallet daemon)
+
 ## TODOs
 
-- [x] wallet-cli
-  - [ ] shielded transaction
-    - [x] demo works
-    - [ ] shielded notes management
-    - [ ] real subcommand
+- [ ] shielded TRC20 support
+- [ ] exchange - won't support
+- [ ] market - won't support
 
-## quickstart
+## Get started
 
 ```console
 > # install rust-nightly

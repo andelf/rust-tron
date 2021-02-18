@@ -42,3 +42,7 @@ function transferFrom(address _from, address _to, uint256 _amount) returns (bool
 ./nile-wallet-cli.sh contract call --const TGQgfK497YXmjdgvun9Bg5Zu3xE15v17cu \
     THi2qJf6XmvTJSpZHc17HgQsmJop6kb3ia 'name()'
 ```
+
+## Shortcuts
+
+You can use `/0`, `/USDT` as addresses.
