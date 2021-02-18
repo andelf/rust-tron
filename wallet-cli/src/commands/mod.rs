@@ -9,3 +9,4 @@ pub mod transfer;
 pub mod wallet;
 pub mod create;
 pub mod batch;
+pub mod key;

@@ -48,6 +48,7 @@ fn main() -> Result<(), Error> {
         ("sign", Some(arg_matches)) => commands::sign::main(arg_matches),
         ("wallet", Some(arg_matches)) => commands::wallet::main(arg_matches),
         ("create", Some(arg_matches)) => commands::create::main(arg_matches),
+        ("key", Some(arg_matches)) => commands::key::main(arg_matches),
         ("shielded", _) => {
             eprintln!("Removed from repo.");
             unimplemented!()

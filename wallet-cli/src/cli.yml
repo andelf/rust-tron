@@ -1798,3 +1798,24 @@ subcommands:
                               long: sk
                               takes_value: true
                               required: true
+    - key:
+          about: Key tools
+          settings: *default_settings
+          subcommands:
+              - generate:
+                    about: Generate key pair
+              - inspect:
+                    about: Inspect a key
+                    args:
+                        - ADDRESS:
+                              help: Address in any format
+                        - public:
+                              help: Public key in hex
+                              takes_value: true
+                              long: public
+                              value_name: PUBLIC_KEY
+                        - private:
+                              help: Private key in hex
+                              takes_value: true
+                              long: private
+                              value_name: PRIVATE_KEY

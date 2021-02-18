@@ -56,6 +56,7 @@ pub fn main(matches: &ArgMatches) -> Result<(), Error> {
         (_, _) => unreachable!("set conflicts in cli.yml; qed"),
     };
 
+    eprintln!("! Calling {}", method);
     if !data.is_empty() {
         eprintln!("! DATA = {:}", data.encode_hex::<String>());
     }
