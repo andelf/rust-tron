@@ -5,7 +5,7 @@ use serde_json::json;
 
 pub fn main(matches: &ArgMatches<'_>) -> Result<(), Error> {
     match matches.subcommand() {
-        ("generate", _) => generate_key(),
+        ("generate", Some(arg_matches)) => generate_key(arg_matches),
         ("inspect", Some(arg_matches)) => inspect_key(arg_matches),
         // ("generate-genesis-key", _) => unimplemented!(),
         _ => {
@@ -15,8 +15,18 @@ pub fn main(matches: &ArgMatches<'_>) -> Result<(), Error> {
     }
 }
 
-fn generate_key() -> Result<(), Error> {
-    let kp = KeyPair::generate();
+fn generate_key(matches: &ArgMatches<'_>) -> Result<(), Error> {
+    let mut kp = KeyPair::generate();
+    if let Some(suffix) = matches.value_of("vanity") {
+        loop {
+            if !kp.address().to_string().ends_with(suffix) {
+                kp = KeyPair::generate();
+            } else {
+                break;
+            }
+        }
+    }
+
     let address = kp.address();
 
     let json = json!({

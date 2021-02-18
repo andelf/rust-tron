@@ -1,6 +1,6 @@
 # rust-tron
 
-Rust implementation of the Tron gRPC Client.
+Rust implementation of the Tron gRPC Client, and a command line wallet.
 
 This project is under active development.
 

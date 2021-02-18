@@ -1804,6 +1804,12 @@ subcommands:
           subcommands:
               - generate:
                     about: Generate key pair
+                    args:
+                        - vanity:
+                              help: Generate vanity address
+                              takes_value: true
+                              long: vanity
+                              value_name: SUFFIX
               - inspect:
                     about: Inspect a key
                     args:

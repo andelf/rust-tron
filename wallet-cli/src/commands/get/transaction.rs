@@ -151,7 +151,7 @@ pub fn get_transaction_info(id: &str) -> Result<(), Error> {
             // length of string: 32 bytes
             // remain: the string
             if revert_msg.len() > 4 + 32 + 32 {
-                eprintln!("! Revert Message: {:?}", str::from_utf8(&revert_msg[4+32+32..]))
+                eprintln!("! Revert Message: {:?}", str::from_utf8(&revert_msg[4 + 32 + 32..]))
             }
         }
     }
