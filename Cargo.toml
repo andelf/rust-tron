@@ -3,3 +3,4 @@ members = [
     "wallet-cli",
     "walletd",
 ]
+default-members = ["wallet-cli"]
