@@ -198,7 +198,7 @@ fn pprint_contract_logs(logs: &[Log]) -> Result<(), Error> {
 
         eprintln!("! Event#{} {}", i, cntr_addr);
         if let Some(entry) = entry {
-            println!("  {}", abi::entry_to_method_name_pretty(entry)?);
+            eprintln!("  {}", abi::entry_to_method_name_pretty(entry)?);
 
             let indexed_param_types = abi::entry_to_indexed_types(entry);
             let indexed_params = abi::decode_params(
