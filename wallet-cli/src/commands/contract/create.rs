@@ -2,9 +2,7 @@ use clap::ArgMatches;
 use hex::{FromHex, ToHex};
 use keys::Address;
 use proto::core::{
-    CreateSmartContract, SmartContract, SmartContract_ABI as Abi, SmartContract_ABI_Entry as AbiEntry,
-    SmartContract_ABI_Entry_EntryType as AbiEntryType, SmartContract_ABI_Entry_Param as AbiEntryParam,
-    SmartContract_ABI_Entry_StateMutabilityType as AbiEntryStateMutabilityType,
+    CreateSmartContract, SmartContract, SmartContract_ABI as Abi, SmartContract_ABI_Entry_EntryType as AbiEntryType,
 };
 use std::convert::TryFrom;
 use std::fs;
@@ -109,13 +107,13 @@ fn load_abi_from_param(param: &str) -> Result<Abi, Error> {
     match param {
         fname if Path::new(fname).exists() => {
             let raw_json = fs::read_to_string(Path::new(fname))?;
-            Ok(json_to_abi(&serde_json::from_str(&raw_json)?))
+            Ok(abi::json_to_abi(&serde_json::from_str(&raw_json)?))
         }
         fname if fname.starts_with('@') => {
             let raw_json = fs::read_to_string(Path::new(&fname[1..]))?;
-            Ok(json_to_abi(&serde_json::from_str(&raw_json)?))
+            Ok(abi::json_to_abi(&serde_json::from_str(&raw_json)?))
         }
-        raw_json if raw_json.trim_start().starts_with("[") => Ok(json_to_abi(&serde_json::from_str(&raw_json)?)),
+        raw_json if raw_json.trim_start().starts_with("[") => Ok(abi::json_to_abi(&serde_json::from_str(&raw_json)?)),
         _ => Err(Error::Runtime("can not determine ABI format")),
     }
 }
@@ -140,74 +138,5 @@ fn load_code_from_param(param: &str) -> Result<Vec<u8>, Error> {
             .map_err(|_| Error::Runtime("can not parse code file as hex"))
         }
         None => hex::decode(param).map_err(|_| Error::Runtime("can not determine code format")),
-    }
-}
-
-#[inline]
-fn translate_state_mutablility(val: &serde_json::Value) -> AbiEntryStateMutabilityType {
-    match val.as_str().unwrap_or_default().to_ascii_lowercase().as_ref() {
-        "view" => AbiEntryStateMutabilityType::View,
-        "nonpayable" => AbiEntryStateMutabilityType::Nonpayable,
-        "payable" => AbiEntryStateMutabilityType::Payable,
-        "pure" => AbiEntryStateMutabilityType::Pure,
-        "" => AbiEntryStateMutabilityType::UnknownMutabilityType,
-        x => {
-            println!("unknown => {:?}", x);
-            unimplemented!()
-        }
-    }
-}
-
-#[inline]
-fn translate_abi_type(val: &serde_json::Value) -> AbiEntryType {
-    match val.as_str().unwrap_or("").to_ascii_lowercase().as_ref() {
-        "function" => AbiEntryType::Function,
-        "event" => AbiEntryType::Event,
-        "constructor" => AbiEntryType::Constructor,
-        "fallback" => AbiEntryType::Fallback,
-        _ => unimplemented!(),
-    }
-}
-
-#[inline]
-fn translate_abi_entry_params(val: &serde_json::Value) -> Vec<AbiEntryParam> {
-    val.as_array()
-        .map(|arr| {
-            arr.iter()
-                .map(|param| AbiEntryParam {
-                    indexed: param["indexed"].as_bool().unwrap_or(false),
-                    name: param["name"].as_str().unwrap_or("").to_owned(),
-                    field_type: param["type"].as_str().unwrap_or("").to_owned(),
-                    ..Default::default()
-                })
-                .collect()
-        })
-        .unwrap_or_default()
-}
-
-fn json_to_abi(json: &serde_json::Value) -> Abi {
-    let entries: Vec<AbiEntry> = json
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|abi| {
-            let mut entry = AbiEntry::new();
-            entry.set_anonymous(abi["anonymous"].as_bool().unwrap_or(false));
-            entry.set_constant(abi["constant"].as_bool().unwrap_or(false));
-            entry.set_name(abi["name"].as_str().unwrap_or("").to_owned());
-            entry.set_payable(abi["payable"].as_bool().unwrap_or(false));
-            entry.set_stateMutability(translate_state_mutablility(&abi["stateMutability"]));
-            entry.set_field_type(translate_abi_type(&abi["type"]));
-
-            entry.set_inputs(translate_abi_entry_params(&abi["inputs"]).into());
-            entry.set_outputs(translate_abi_entry_params(&abi["outputs"]).into());
-
-            entry
-        })
-        .collect();
-
-    Abi {
-        entrys: entries.into(),
-        ..Default::default()
     }
 }

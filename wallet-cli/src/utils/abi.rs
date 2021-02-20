@@ -5,14 +5,23 @@ use ethabi::token::{LenientTokenizer, StrictTokenizer, Token, Tokenizer};
 use ethabi::{decode, encode};
 use hex::{FromHex, ToHex};
 use keys::Address;
+use lazy_static::lazy_static;
 use proto::core::{
-    SmartContract_ABI_Entry as AbiEntry, SmartContract_ABI_Entry_EntryType as AbiEntryType,
-    SmartContract_ABI_Entry_StateMutabilityType as StateMutabilityType,
+    SmartContract_ABI as Abi, SmartContract_ABI_Entry as AbiEntry, SmartContract_ABI_Entry_EntryType as AbiEntryType,
+    SmartContract_ABI_Entry_Param as AbiEntryParam, SmartContract_ABI_Entry_StateMutabilityType as StateMutabilityType,
+    SmartContract_ABI_Entry_StateMutabilityType as AbiEntryStateMutabilityType,
 };
 use std::fmt::Write as FmtWrite;
 
 use crate::error::Error;
 use crate::utils::crypto;
+
+lazy_static! {
+    pub static ref DEFAULT_EVENT_ABI: Vec<AbiEntry> = {
+        let json = serde_json::from_str(include_str!("./events.abi")).unwrap();
+        json_to_abi(&json).entrys.to_vec()
+    };
+}
 
 #[inline]
 /// Hash code of a contract method.
@@ -164,4 +173,91 @@ pub fn entry_to_input_types(entry: &AbiEntry) -> Vec<&str> {
         .iter()
         .map(|arg| arg.get_field_type())
         .collect::<Vec<_>>()
+}
+
+pub fn entry_to_indexed_types(entry: &AbiEntry) -> Vec<&str> {
+    entry
+        .get_inputs()
+        .iter()
+        .filter(|arg| arg.get_indexed())
+        .map(|arg| arg.get_field_type())
+        .collect::<Vec<_>>()
+}
+
+pub fn entry_to_non_indexed_types(entry: &AbiEntry) -> Vec<&str> {
+    entry
+        .get_inputs()
+        .iter()
+        .filter(|arg| !arg.get_indexed())
+        .map(|arg| arg.get_field_type())
+        .collect::<Vec<_>>()
+}
+
+#[inline]
+fn translate_state_mutablility(val: &serde_json::Value) -> AbiEntryStateMutabilityType {
+    match val.as_str().unwrap_or_default().to_ascii_lowercase().as_ref() {
+        "view" => AbiEntryStateMutabilityType::View,
+        "nonpayable" => AbiEntryStateMutabilityType::Nonpayable,
+        "payable" => AbiEntryStateMutabilityType::Payable,
+        "pure" => AbiEntryStateMutabilityType::Pure,
+        "" => AbiEntryStateMutabilityType::UnknownMutabilityType,
+        x => {
+            println!("unknown => {:?}", x);
+            unimplemented!()
+        }
+    }
+}
+
+#[inline]
+fn translate_abi_type(val: &serde_json::Value) -> AbiEntryType {
+    match val.as_str().unwrap_or("").to_ascii_lowercase().as_ref() {
+        "function" => AbiEntryType::Function,
+        "event" => AbiEntryType::Event,
+        "constructor" => AbiEntryType::Constructor,
+        "fallback" => AbiEntryType::Fallback,
+        _ => unimplemented!(),
+    }
+}
+
+#[inline]
+fn translate_abi_entry_params(val: &serde_json::Value) -> Vec<AbiEntryParam> {
+    val.as_array()
+        .map(|arr| {
+            arr.iter()
+                .map(|param| AbiEntryParam {
+                    indexed: param["indexed"].as_bool().unwrap_or(false),
+                    name: param["name"].as_str().unwrap_or("").to_owned(),
+                    field_type: param["type"].as_str().unwrap_or("").to_owned(),
+                    ..Default::default()
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+pub fn json_to_abi(json: &serde_json::Value) -> Abi {
+    let entries: Vec<AbiEntry> = json
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|abi| {
+            let mut entry = AbiEntry::new();
+            entry.set_anonymous(abi["anonymous"].as_bool().unwrap_or(false));
+            entry.set_constant(abi["constant"].as_bool().unwrap_or(false));
+            entry.set_name(abi["name"].as_str().unwrap_or("").to_owned());
+            entry.set_payable(abi["payable"].as_bool().unwrap_or(false));
+            entry.set_stateMutability(translate_state_mutablility(&abi["stateMutability"]));
+            entry.set_field_type(translate_abi_type(&abi["type"]));
+
+            entry.set_inputs(translate_abi_entry_params(&abi["inputs"]).into());
+            entry.set_outputs(translate_abi_entry_params(&abi["outputs"]).into());
+
+            entry
+        })
+        .collect();
+
+    Abi {
+        entrys: entries.into(),
+        ..Default::default()
+    }
 }
