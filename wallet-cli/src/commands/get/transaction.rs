@@ -48,7 +48,16 @@ pub fn get_transaction(id: &str) -> Result<(), Error> {
                 (payload.get_raw_data().timestamp % 1_000 * 1_000_000) as _
             )
         );
+    } else {
+        eprintln!("! Timestamp: N/A");
     }
+    eprintln!(
+        "! Expiration: {}",
+        Local.timestamp(
+            payload.get_raw_data().expiration / 1_000,
+            (payload.get_raw_data().expiration % 1_000 * 1_000_000) as _
+        )
+    );
 
     let sender = trx::extract_owner_address_from_parameter(payload.get_raw_data().get_contract()[0].get_parameter())?;
     eprintln!("! Sender Address(base58check):   {}", sender);
@@ -66,6 +75,7 @@ pub fn get_transaction(id: &str) -> Result<(), Error> {
             .as_str()
             .unwrap();
         eprintln!("! Contract Address(base58check): {}", contract_address);
+        eprintln!("! Contract result: {:?}", payload.get_ret()[0].get_contractRet());
         pprint_contract_call_data(&contract_address, data)?;
     }
 
@@ -97,11 +107,17 @@ pub fn get_transaction_info(id: &str) -> Result<(), Error> {
 
     println!("{}", serde_json::to_string_pretty(&json)?);
 
+    eprintln!(
+        "! Block Timestamp: {}",
+        Local.timestamp(payload.get_blockTimeStamp() / 1_000, 0)
+    );
+
     if !payload.get_contract_address().is_empty() {
         eprintln!(
             "! Contract Address: {}",
             Address::try_from(payload.get_contract_address())?
         );
+        eprintln!("! Contract result: {:?}", payload.get_receipt().get_result());
     }
 
     if payload.get_receipt().net_usage > 0 {
