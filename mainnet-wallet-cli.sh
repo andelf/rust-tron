@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cargo run -p wallet-cli -- $@
+cargo run --release -p wallet-cli -- $@
