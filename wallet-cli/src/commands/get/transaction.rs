@@ -1,18 +1,21 @@
+use std::convert::TryFrom;
+use std::str;
+
 use chrono::{Local, TimeZone, Utc};
 use futures::executor;
+use itertools::Itertools;
 use keys::Address;
 use proto::api::BytesMessage;
 use proto::core::{
-    Transaction_Contract_ContractType as ContractType, Transaction_Result_code as ResultCode,
-    Transaction_Result_contractResult as ContractResult,
+    TransactionInfo_Log as Log, Transaction_Contract_ContractType as ContractType,
+    Transaction_Result_code as ResultCode, Transaction_Result_contractResult as ContractResult,
 };
 use protobuf::Message;
-use std::convert::TryFrom;
-use std::str;
 
 use crate::error::Error;
 use crate::utils::abi;
 use crate::utils::client;
+use crate::utils::crypto;
 use crate::utils::jsont;
 use crate::utils::trx;
 
@@ -112,14 +115,6 @@ pub fn get_transaction_info(id: &str) -> Result<(), Error> {
         Local.timestamp(payload.get_blockTimeStamp() / 1_000, 0)
     );
 
-    if !payload.get_contract_address().is_empty() {
-        eprintln!(
-            "! Contract Address: {}",
-            Address::try_from(payload.get_contract_address())?
-        );
-        eprintln!("! Contract result: {:?}", payload.get_receipt().get_result());
-    }
-
     if payload.get_receipt().net_usage > 0 {
         eprintln!("! Free/Frozen Bandwidth Used: {}", payload.get_receipt().net_usage);
     }
@@ -160,6 +155,14 @@ pub fn get_transaction_info(id: &str) -> Result<(), Error> {
         eprintln!("!! All of Fee Limit Spent!");
     }
 
+    if !payload.get_contract_address().is_empty() {
+        eprintln!(
+            "! Contract Address: {}",
+            Address::try_from(payload.get_contract_address())?
+        );
+        eprintln!("! Contract result: {:?}", payload.get_receipt().get_result());
+    }
+
     if payload.get_receipt().result == ContractResult::REVERT {
         if let Some(revert_msg) = payload.get_contractResult().get(0) {
             // function selecter: 4 bytes
@@ -169,6 +172,62 @@ pub fn get_transaction_info(id: &str) -> Result<(), Error> {
             if revert_msg.len() > 4 + 32 + 32 {
                 eprintln!("! Revert Message: {:?}", str::from_utf8(&revert_msg[4 + 32 + 32..]))
             }
+        }
+    }
+    if !payload.get_log().is_empty() {
+        eprintln!("! Event Logs: {}", payload.get_log().len());
+
+        let _ = pprint_contract_logs(payload.get_log());
+    }
+
+    Ok(())
+}
+
+fn pprint_contract_logs(logs: &[Log]) -> Result<(), Error> {
+    use proto::core::SmartContract_ABI_Entry_EntryType as AbiEntryType;
+
+    for (i, log) in logs.iter().enumerate() {
+        let cntr_addr = Address::from_tvm_bytes(log.get_address());
+        let abi_entries = trx::get_contract_abi(&cntr_addr)?;
+
+        let entry = abi_entries
+            .iter()
+            .chain(abi::DEFAULT_EVENT_ABI.iter())
+            .filter(|e| e.get_field_type() == AbiEntryType::Event)
+            .find(|e| crypto::keccak256(abi::entry_to_method_name(&e).as_bytes()).as_ref() == log.get_topics()[0]);
+
+        eprintln!("! Event#{} {}", i, cntr_addr);
+        if let Some(entry) = entry {
+            println!("  {}", abi::entry_to_method_name_pretty(entry)?);
+
+            let indexed_param_types = abi::entry_to_indexed_types(entry);
+            let indexed_params = abi::decode_params(
+                &indexed_param_types,
+                &hex::encode(log.get_topics()[1..].iter().cloned().concat()),
+            )?;
+
+            let param_types = abi::entry_to_non_indexed_types(entry);
+            let params = abi::decode_params(&param_types, &hex::encode(&log.get_data()))?;
+
+            let mut i = 0;
+            let mut j = 0;
+            for arg in entry.get_inputs().iter() {
+                if arg.get_indexed() {
+                    eprintln!(
+                        "      {} indexed {} = {}",
+                        arg.get_field_type(),
+                        arg.get_name(),
+                        indexed_params[i]
+                    );
+                    i += 1;
+                } else {
+                    eprintln!("      {} {} = {}", arg.get_field_type(), arg.get_name(), params[j]);
+                    j += 1;
+                }
+            }
+        } else {
+            eprintln!("  {}", hex::encode(&log.get_topics()[0]));
+            eprintln!("  (ABI not found, cannot parse)");
         }
     }
 
