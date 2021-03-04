@@ -197,7 +197,12 @@ fn pprint_contract_logs(logs: &[Log]) -> Result<(), Error> {
             .filter(|e| e.get_field_type() == AbiEntryType::Event)
             .find(|e| crypto::keccak256(abi::entry_to_method_name(&e).as_bytes()).as_ref() == log.get_topics()[0]);
 
-        eprintln!("! Event#{} {}", i, cntr_addr);
+        eprintln!(
+            "! Event#{} {} {}",
+            i,
+            cntr_addr,
+            cntr_addr.to_well_known_name().unwrap_or_default()
+        );
         if let Some(entry) = entry {
             eprintln!("  {}", abi::entry_to_method_name_pretty(entry)?);
 
