@@ -20,6 +20,20 @@ const ADDRESS_TYPE_PREFIX: u8 = 0x41;
 #[derive(PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
 pub struct Address([u8; 21]);
 
+// Name => Address
+const WELLKNOWN_ADDRESS: &[(&str, &str)] = &[
+    ("410000000000000000000000000000000000000000", "0"),
+    ("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", "USDT"),
+    ("TWVVcRqRmpyAi9dASvTXrqnS7FrwvDezMn", "OKS"),
+    ("TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE", "S-USDT-TRX"),
+    ("TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR", "WTRX"),
+    ("TKfjV9RNKJJCqPvBtK8L7Knykh7DNWvnYt", "WBTT"),
+    ("TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9", "BTC"),
+    ("TXpw8XeWYeTUd4quDskoUqeQPowRh4jY65", "WBTC"),
+    ("THb4CqiFdwNHsWsQCs4JhzwjMWys4aqCbF", "ETH"),
+    ("TVrZ3PjjFGbnp44p6SGASAKrJWAUjCHmCA", "JustSwap"),
+];
+
 impl Address {
     /// Address of a public key.
     pub fn from_public(public: &Public) -> Address {
@@ -75,6 +89,14 @@ impl Address {
         let mut addr = format!("0x{}", hex::encode(self.as_tvm_bytes()));
         eip55_checksum(unsafe { &mut addr.as_bytes_mut()[2..] });
         addr
+    }
+
+    /// Is this a well-known address.
+    pub fn to_well_known_name(&self) -> Option<String> {
+        WELLKNOWN_ADDRESS
+            .iter()
+            .find(|(addr, _name)| addr == &self.to_string())
+            .map(|(_, name)| format!("/{}", name))
     }
 }
 
@@ -161,10 +183,14 @@ impl FromStr for Address {
                 .and_then(Address::try_from)
         } else if s == "_" || s == "0x0" || s == "/0" {
             "410000000000000000000000000000000000000000".parse()
-        } else if s == "/USDT" {
-            "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".parse()
-        } else if s == "/OKS" {
-            "TWVVcRqRmpyAi9dASvTXrqnS7FrwvDezMn".parse()
+        } else if s.starts_with("/") {
+            // look up from well-known addresses
+            WELLKNOWN_ADDRESS
+                .iter()
+                .find(|(_addr, name)| &&s[1..] == name)
+                .ok_or_else(|| Error::InvalidAddress)?
+                .0
+                .parse()
         } else {
             eprintln!("len={} prefix={:x}", s.len(), s.as_bytes()[0]);
             Err(Error::InvalidAddress)
