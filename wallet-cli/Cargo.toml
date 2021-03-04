@@ -24,6 +24,7 @@ itertools = "0.9"
 rpassword = "5"
 ethabi = "12"
 lazy_static = "1.4"
+primitive-types ="0.9"
 
 proto = { path = "../proto" }
 keys = { path = "../keys" }

@@ -184,6 +184,7 @@ pub fn get_transaction_info(id: &str) -> Result<(), Error> {
 }
 
 fn pprint_contract_logs(logs: &[Log]) -> Result<(), Error> {
+    use primitive_types::U256;
     use proto::core::SmartContract_ABI_Entry_EntryType as AbiEntryType;
 
     for (i, log) in logs.iter().enumerate() {
@@ -226,8 +227,19 @@ fn pprint_contract_logs(logs: &[Log]) -> Result<(), Error> {
                 }
             }
         } else {
-            eprintln!("  {}", hex::encode(&log.get_topics()[0]));
             eprintln!("  (ABI not found, cannot parse)");
+            eprintln!("  topic[0]: {}", hex::encode(&log.get_topics()[0]));
+            for (i, t) in log.get_topics().iter().enumerate().skip(1) {
+                eprintln!("  topic[{}]: {}", i, hex::encode(t));
+                if t.starts_with(&[0; 24]) {
+                    eprintln!("    as uint256: {}", U256::from_big_endian(t));
+                } else if t.starts_with(&[0; 4]) {
+                    eprintln!("    as address: {}", Address::from_tvm_bytes(&t[12..]));
+                }
+            }
+            if !log.get_data().is_empty() {
+                eprintln!("  data: {}", hex::encode(log.get_data()));
+            }
         }
     }
 
