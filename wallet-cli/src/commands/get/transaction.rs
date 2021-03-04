@@ -156,9 +156,11 @@ pub fn get_transaction_info(id: &str) -> Result<(), Error> {
     }
 
     if !payload.get_contract_address().is_empty() {
+        let cntr_addr = Address::try_from(payload.get_contract_address())?;
         eprintln!(
-            "! Contract Address: {}",
-            Address::try_from(payload.get_contract_address())?
+            "! Contract Address: {} {}",
+            cntr_addr,
+            cntr_addr.to_well_known_name().unwrap_or_default()
         );
         eprintln!("! Contract result: {:?}", payload.get_receipt().get_result());
     }
