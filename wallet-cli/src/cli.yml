@@ -308,6 +308,7 @@ subcommands:
           subcommands:
               - vote_witness:
                     about: Vote for witnesses
+                    aliases: ["vote"]
                     args:
                         - SENDER:
                               help: The account voting for witnesses
@@ -315,6 +316,7 @@ subcommands:
                         - VOTES:
                               help: A vote for witness, leave empty for no vote, multiple accepted
                               multiple: true
+                              last: true
                               value_names:
                                   - ADDR
                                   - COUNT
@@ -431,6 +433,7 @@ subcommands:
                     args: *witness_url_args
               - withdraw_reward:
                     about: Withdraw SR rewards from allowance for a witness
+                    aliases: ["withdraw"]
                     args:
                         - SENDER:
                               help: The account to of the witness
@@ -493,6 +496,7 @@ subcommands:
                         - PARAMS:
                               help: Modified chain parameter of the proposal
                               multiple: true
+                              last: true
                               required: true
                               value_name: "ID=VALUE"
                         - memo:
@@ -610,6 +614,7 @@ subcommands:
                     args: *proposal_id_args
               - freeze:
                     about: Freeze balance for bandwidth or energy
+                    aliases: ["delegate"]
                     args:
                         - FROM:
                               help: The account freezing balance for bandwidth or energy
@@ -685,6 +690,7 @@ subcommands:
 
               - unfreeze:
                     about: Unfreeze balance from bandwidth or energy
+                    aliases: ["undelegate"]
                     args:
                         - FROM:
                               help: The account freezing balance for bandwidth or energy
