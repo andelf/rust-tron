@@ -416,7 +416,12 @@ fn get_account_resource(name: &str) -> Result<(), Error> {
         eprintln!("! Bandwidth Usage: {}/{}", payload.NetUsed, payload.NetLimit);
     }
     if payload.EnergyLimit > 0 {
-        eprintln!("! Energy Usage: {}/{}", payload.EnergyUsed, payload.EnergyLimit);
+        eprintln!(
+            "! Energy Usage: {}/{} ({})",
+            payload.EnergyUsed,
+            payload.EnergyLimit,
+            payload.EnergyLimit - payload.EnergyUsed
+        );
     }
     eprintln!(
         "! Energy By Freezing    1_TRX = {:.5}",
