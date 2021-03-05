@@ -352,17 +352,68 @@ fn get_account(name: &str) -> Result<(), Error> {
     eprintln!("! Address(Base58Check) = {:}", addr);
     eprintln!("! Created At: {}", Local.timestamp(payload.create_time / 1_000, 0));
 
+    let mut total_balance = 0;
     if payload.balance != 0 {
+        total_balance += payload.balance;
         eprintln!(
             "! Balance = {}",
             trx::format_amount_with_surfix(payload.balance, "TRX", 6)
         );
     }
-    if payload.allowance != 0 {
+    if payload.get_account_resource().get_delegated_frozen_balance_for_energy() != 0 {
+        total_balance += payload.get_account_resource().get_delegated_frozen_balance_for_energy();
         eprintln!(
-            "! Unwithdrawn SR Reward = {}",
+            "! Delegate Balance for Energy = {}",
+            trx::format_amount_with_surfix(
+                payload.get_account_resource().get_delegated_frozen_balance_for_energy(),
+                "TRX",
+                6
+            )
+        )
+    }
+    if payload
+        .get_account_resource()
+        .get_frozen_balance_for_energy()
+        .frozen_balance !=
+        0
+    {
+        total_balance += payload
+            .get_account_resource()
+            .get_frozen_balance_for_energy()
+            .frozen_balance;
+        eprintln!(
+            "! Frozen Balance for Energy = {}",
+            trx::format_amount_with_surfix(
+                payload
+                    .get_account_resource()
+                    .get_frozen_balance_for_energy()
+                    .frozen_balance,
+                "TRX",
+                6
+            )
+        )
+    }
+    // NOTE: tron is ugly everywhere
+    if !payload.get_frozen().is_empty() {
+        total_balance += payload.get_frozen()[0].frozen_balance;
+        eprintln!(
+            "! Frozen/Delegate Balance for Bandwidth = {}",
+            trx::format_amount_with_surfix(payload.get_frozen()[0].frozen_balance, "TRX", 6)
+        )
+    }
+    if payload.allowance != 0 {
+        total_balance += payload.allowance;
+        eprintln!(
+            "! Unwithdrawn SR/Voting Reward = {}",
             trx::format_amount_with_surfix(payload.allowance, "TRX", 6)
         );
+    }
+
+    if total_balance > 0 {
+        eprintln!(
+            "! Total Balance = {}",
+            trx::format_amount_with_surfix(total_balance, "TRX", 6)
+        )
     }
 
     Ok(())
