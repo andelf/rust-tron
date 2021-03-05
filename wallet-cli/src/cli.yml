@@ -1,6 +1,6 @@
 name: wallet-cli
 version: "0.1.0"
-author: Shuyu WANG <andelf@gmail.com>
+author: Andelf <andelf@gmail.com>
 about: Tron Protocol wallet command line util
 settings: &default_settings
     - DisableHelpSubcommand
