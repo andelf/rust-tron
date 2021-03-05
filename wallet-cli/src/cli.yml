@@ -170,6 +170,7 @@ subcommands:
           subcommands:
               - account_permission:
                     about: Update an account's permission
+                    aliases: ["perm"]
                     args:
                         - ADDR:
                               help: The address of the account to set permisiion
@@ -303,6 +304,7 @@ subcommands:
     - system:
           about: Call a system contract
           settings: *default_settings
+          aliases: ["sys"]
           subcommands:
               - vote_witness:
                     about: Vote for witnesses
@@ -1185,9 +1187,11 @@ subcommands:
     - contract:
           about: Manage smart contracts
           settings: *default_settings
+          aliases: ["cntr"]
           subcommands:
               - create:
                     about: Create a contract on chain
+                    aliases: ["new"]
                     args:
                         - OWNER:
                               help: The owner creating contract
@@ -1305,6 +1309,7 @@ subcommands:
                               possible_values: ["0", "2", "1"]
               - call:
                     about: Trigger a smart contract call
+                    aliases: ["trigger"]
                     args:
                         - SENDER:
                               help: The account calling contract
