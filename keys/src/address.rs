@@ -32,6 +32,7 @@ const WELLKNOWN_ADDRESS: &[(&str, &str)] = &[
     ("TXpw8XeWYeTUd4quDskoUqeQPowRh4jY65", "WBTC"),
     ("THb4CqiFdwNHsWsQCs4JhzwjMWys4aqCbF", "ETH"),
     ("TVrZ3PjjFGbnp44p6SGASAKrJWAUjCHmCA", "JustSwap"),
+    ("TQEuSEVRk1GtfExm5q9T8a1w84GvgQJ13V", "ShieldedUSDT"),
 ];
 
 impl Address {
