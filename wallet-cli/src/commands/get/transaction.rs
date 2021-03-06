@@ -77,7 +77,11 @@ pub fn get_transaction(id: &str) -> Result<(), Error> {
         let data = transaction["raw_data"]["contract"][0]["parameter"]["value"]["data"]
             .as_str()
             .unwrap();
-        eprintln!("! Contract Address(base58check): {}", contract_address);
+        eprintln!(
+            "! Contract Address(base58check): {} {}",
+            contract_address,
+            contract_address.to_well_known_name().unwrap_or_default()
+        );
         eprintln!("! Contract result: {:?}", payload.get_ret()[0].get_contractRet());
         pprint_contract_call_data(&contract_address, data)?;
     }
