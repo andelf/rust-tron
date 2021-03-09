@@ -1197,7 +1197,7 @@ subcommands:
           subcommands:
               - create:
                     about: Create a contract on chain
-                    aliases: ["new"]
+                    aliases: ["new", "deploy"]
                     args:
                         - OWNER:
                               help: The owner creating contract
