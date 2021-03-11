@@ -1,6 +1,6 @@
 use clap::ArgMatches;
 use futures::executor;
-use proto::api::EmptyMessage;
+use proto::api::{BytesMessage, EmptyMessage};
 use serde_json::json;
 
 use crate::error::Error;
@@ -41,6 +41,32 @@ fn list_witnesses() -> Result<(), Error> {
         })
         .last();
     println!("{}", serde_json::to_string_pretty(&witnesses["witnesses"])?);
+
+    let mut active_witnesses = payload
+        .get_witnesses()
+        .iter()
+        .filter(|wit| wit.get_isJobs())
+        .collect::<Vec<_>>();
+    active_witnesses.sort_by_key(|wit| -wit.get_voteCount());
+    for wit in &active_witnesses {
+        let mut req = BytesMessage::new();
+        req.set_value(wit.get_address().to_owned());
+
+        let kept_percent = executor::block_on(
+            client::GRPC_CLIENT
+                .get_brokerage_info(Default::default(), req)
+                .drop_metadata(),
+        )?
+        .get_num();
+        let share_percent = 100 - kept_percent;
+        eprintln!(
+            "! {}\t{}\t{}%\t{}",
+            keys::b58encode_check(wit.get_address()),
+            wit.get_voteCount(),
+            share_percent,
+            wit.get_url(),
+        );
+    }
     Ok(())
 }
 
