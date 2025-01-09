@@ -15,8 +15,7 @@ pub fn aes_encrypt(key: &[u8], plain_text: &[u8]) -> Result<Vec<u8>, Error> {
     let mut buffer = plain_text.to_owned();
 
     // encrypt plaintext
-    Aes256CfbEnc::new(&key.into(), &iv.into())
-        .encrypt(&mut buffer);
+    Aes256CfbEnc::new(&key.into(), &iv.into()).encrypt(&mut buffer);
 
     Ok(buffer)
 }
@@ -27,8 +26,7 @@ pub fn aes_decrypt(key: &[u8], cipher_text: &[u8]) -> Result<Vec<u8>, Error> {
 
     let mut buffer = cipher_text.to_owned();
 
-    Aes256CfbDec::new(&key.into(), &iv.into())
-        .decrypt(&mut buffer);
+    Aes256CfbDec::new(&key.into(), &iv.into()).decrypt(&mut buffer);
 
     Ok(buffer)
 }

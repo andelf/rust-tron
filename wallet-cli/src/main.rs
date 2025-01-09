@@ -5,7 +5,7 @@ mod error;
 mod utils;
 
 use error::Error;
-use proto::wallet_client::WalletClient;
+use proto::{wallet_client::WalletClient, EmptyMessage, NumberMessage};
 
 // ref: https://developers.tron.network/docs/trongrid
 
@@ -55,6 +55,14 @@ async fn main() -> Result<(), Error> {
 
     let mut ret = serde_json::to_value(resp)?;
     utils::jsont::fix_account(&mut ret);
+
+    println!("RESPONSE={}", serde_json::to_string_pretty(&ret).unwrap());
+
+    let resp = wallet_client.get_now_block(EmptyMessage {}).await?.into_inner();
+
+    println!("RESPONSE={:?}", resp);
+    let mut ret = serde_json::to_value(resp)?;
+    utils::jsont::fix_block(&mut ret)?;
 
     println!("RESPONSE={}", serde_json::to_string_pretty(&ret).unwrap());
 

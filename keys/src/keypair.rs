@@ -1,8 +1,8 @@
 //! A KeyPair type is for generating and saving private/public key pairs.
 use std::fmt;
 
-use rand::rngs::OsRng;
 use libsecp256k1::{PublicKey, SecretKey};
+use rand::rngs::OsRng;
 
 use crate::address::Address;
 use crate::error::Error;

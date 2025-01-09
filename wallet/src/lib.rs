@@ -3,7 +3,7 @@ use keys::{Address, KeyPair, Private, Public, Signature};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use serde_json::json;
-use std::collections::{HashSet};
+use std::collections::HashSet;
 use std::convert::TryFrom;
 use std::fs::{self, File};
 use std::io::Write;

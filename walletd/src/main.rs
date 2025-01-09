@@ -349,7 +349,7 @@ impl LocalWallet for LocalWalletService {
         request: Request<GetExpandedSpendingKeyRequest>,
     ) -> Result<Response<GetExpandedSpendingKeyResponse>, Status> {
         println!("INFO request {:?} {:?}", request.remote_addr(), request.get_ref());
-       // let _address = &request.get_ref().address.parse::<ZAddress>()?;
+        // let _address = &request.get_ref().address.parse::<ZAddress>()?;
         unimplemented!()
     }
 }
@@ -405,7 +405,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let fut = tokio_main();
     // Create the runtime
-    let rt  = Runtime::new()?;
+    let rt = Runtime::new()?;
     rt.block_on(fut)
 }
 

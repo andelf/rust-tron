@@ -177,6 +177,16 @@ pub fn fix_transaction_raw(transaction: &mut serde_json::Value) -> Result<(), Er
     if transaction["contract"].as_array().unwrap().is_empty() {
         return Ok(());
     }
+
+    transaction["ref_block_hash"] = json!(bytes_to_hex_string(&transaction["ref_block_hash"]));
+    transaction["ref_block_bytes"] = json!(bytes_to_hex_string(&transaction["ref_block_bytes"]));
+    transaction["data"] = json!(bytes_to_hex_string(&transaction["data"]));
+    // transaction["scripts"] = json!(bytes_to_hex_string(&transaction["scripts"]));
+
+    if transaction["contract"][0]["parameter"].is_null() {
+        // TODO: impl parameter, Any
+        return Ok(());
+    }
     let raw_pb = transaction["contract"][0]["parameter"]["value"]
         .as_array()
         .unwrap()
@@ -353,11 +363,9 @@ pub fn fix_transaction_raw(transaction: &mut serde_json::Value) -> Result<(), Er
             json!(raw_pb.encode_hex::<String>())
         }
     };
+
     transaction["contract"][0]["parameter"]["value"] = parsed_value;
 
-    transaction["ref_block_hash"] = json!(bytes_to_hex_string(&transaction["ref_block_hash"]));
-    transaction["ref_block_bytes"] = json!(bytes_to_hex_string(&transaction["ref_block_bytes"]));
-    transaction["data"] = json!(bytes_to_hex_string(&transaction["data"]));
     Ok(())
 }
 
@@ -542,7 +550,7 @@ pub fn fix_block(block: &mut serde_json::Value) -> Result<(), Error> {
         block["blockid"] = json!(bytes_to_hex_string(&block["blockid"]));
     }
 
-    for key in &["parentHash", "txTrieRoot", "witness_address", "accountStateRoot"] {
+    for key in &["parent_hash", "tx_trie_root", "witness_address", "account_state_root"] {
         block["block_header"]["raw_data"][key] = json!(bytes_to_hex_string(&block["block_header"]["raw_data"][key]));
     }
     block["block_header"]["witness_signature"] =
