@@ -1,24 +1,29 @@
 use clap::load_yaml;
 
-mod commands;
+// mod commands;
 mod error;
-mod utils;
+// mod utils;
 
 use error::Error;
+use proto::wallet_client::WalletClient;
+
+// ref: https://developers.tron.network/docs/trongrid
 
 // FIXME: should use AppConfig, for now, use static var
-static mut RPC_ADDR: &str = "grpc.trongrid.io:50051";
+static mut GRPC_ADDR: &str = "grpc.trongrid.io:50051";
 /// Used for sun-network
 static mut CHAIN_ID: Option<&str> = None;
 
-fn main() -> Result<(), Error> {
-    utils::walletd::ensure_walletd()?;
+#[tokio::main]
+async fn main() -> Result<(), Error> {
+    // utils::walletd::ensure_walletd()?;
 
     let yaml = load_yaml!("cli.yml");
+
     let matches = clap::App::from_yaml(yaml).get_matches();
 
     unsafe {
-        RPC_ADDR = match (matches.value_of("network"), matches.value_of("rpc-addr")) {
+        GRPC_ADDR = match (matches.value_of("network"), matches.value_of("rpc-addr")) {
             // NOTE: matches lasts till main() ends, which is OK to use `leak`.
             (_, Some(host)) => Box::leak(host.to_owned().into_boxed_str()),
             (Some("mainnet"), _) => "grpc.trongrid.io:50051",
@@ -36,9 +41,23 @@ fn main() -> Result<(), Error> {
         };
     }
 
+    println!("GRPC_ADDR={}", unsafe { GRPC_ADDR });
+
+    let grpc_addr = unsafe { GRPC_ADDR };
+    let mut wallet_client = WalletClient::connect(format!("http://{}", grpc_addr)).await?;
+
+    let req = tonic::Request::new(proto::Account {
+        address: hex::decode("41d8dd39e2dea27a40001884901735e3940829bb44").unwrap(),
+        ..Default::default()
+    });
+
+    let resp = wallet_client.get_account(req).await?.into_inner();
+
+    println!("RESPONSE={:?}", resp);
+
     match matches.subcommand() {
-        ("get", Some(arg_matches)) => commands::get::main(arg_matches),
-        ("list", Some(arg_matches)) => commands::list::main(arg_matches),
+        // ("get", Some(arg_matches)) => commands::get::main(arg_matches),
+        /* ("list", Some(arg_matches)) => commands::list::main(arg_matches),
         ("set", Some(arg_matches)) => commands::set::main(arg_matches),
         ("system", Some(arg_matches)) => commands::system::main(arg_matches),
         ("asset", Some(arg_matches)) => commands::asset::main(arg_matches),
@@ -53,6 +72,7 @@ fn main() -> Result<(), Error> {
             eprintln!("Removed from repo.");
             unimplemented!()
         }
+        */
         _ => unreachable!("handled by cli.yml; qed"),
     }
 }

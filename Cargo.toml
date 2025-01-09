@@ -1,6 +1,8 @@
 [workspace]
+resolver = "2"
 members = [
     "wallet-cli",
     "walletd",
+    "proto",
 ]
 default-members = ["wallet-cli"]

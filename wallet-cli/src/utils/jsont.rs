@@ -1,9 +1,9 @@
 //! JSON transformations
 
 use hex::{FromHex, ToHex};
-use proto::core::{
+use proto::{
     AccountCreateContract, AccountPermissionUpdateContract, AccountUpdateContract, AssetIssueContract,
-    ClearABIContract, CreateSmartContract, ExchangeInjectContract, FreezeBalanceContract,
+    ClearAbiContract, CreateSmartContract, ExchangeInjectContract, FreezeBalanceContract,
     ParticipateAssetIssueContract, ProposalApproveContract, ProposalCreateContract, ProposalDeleteContract,
     ShieldedTransferContract, TransferAssetContract, TransferContract, TriggerSmartContract, UnfreezeAssetContract,
     UnfreezeBalanceContract, UpdateAssetContract, UpdateEnergyLimitContract, UpdateSettingContract,
@@ -297,8 +297,8 @@ pub fn fix_transaction_raw(transaction: &mut serde_json::Value) -> Result<(), Er
             contract["contract_address"] = json!(bytes_to_hex_string(&contract["contract_address"]));
             contract
         }
-        Some("ClearABIContract") => {
-            let pb: ClearABIContract = protobuf::parse_from_bytes(&raw_pb)?;
+        Some("ClearAbiContract") => {
+            let pb: ClearAbiContract = protobuf::parse_from_bytes(&raw_pb)?;
             let mut contract = serde_json::to_value(&pb)?;
             contract["owner_address"] = json!(bytes_to_hex_string(&contract["owner_address"]));
             contract["contract_address"] = json!(bytes_to_hex_string(&contract["contract_address"]));

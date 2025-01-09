@@ -2,10 +2,9 @@
 use daemonize::Daemonize;
 use std::convert::TryFrom;
 use std::sync::{Arc, RwLock};
-use tokio::runtime::Builder;
 use tonic::{transport::Server, Request, Response, Status};
 use wallet::Wallet;
-use ztron::keys::ZAddress;
+// use ztron::keys::ZAddress;
 
 use api::local_wallet_server::{LocalWallet, LocalWalletServer};
 use api::{sign_digest_request::PrivateKeyOf, KeyPair};
@@ -240,6 +239,8 @@ impl LocalWallet for LocalWalletService {
 
     async fn create_zkey(&self, request: Request<CreateZkeyRequest>) -> Result<Response<CreateZkeyResponse>, Status> {
         println!("INFO request {:?} {:?}", request.remote_addr(), request.get_ref());
+        todo!()
+        /*
         let reply = match *(*self.wallet).write().unwrap() {
             Some(ref mut wallet) => wallet
                 .create_zkey()
@@ -262,11 +263,15 @@ impl LocalWallet for LocalWalletService {
         };
 
         Ok(Response::new(reply))
+        */
     }
 
     async fn list_zkeys(&self, request: Request<ListZkeysRequest>) -> Result<Response<ListZkeysResponse>, Status> {
         println!("INFO request {:?} {:?}", request.remote_addr(), request.get_ref());
 
+        todo!()
+
+        /*
         let reply = match *(*self.wallet).read().unwrap() {
             Some(ref wallet) => {
                 let addrs = wallet
@@ -288,6 +293,7 @@ impl LocalWallet for LocalWalletService {
             },
         };
         Ok(Response::new(reply))
+        */
     }
 
     async fn list_notes(&self, _request: Request<ListNotesRequest>) -> Result<Response<ListNotesResponse>, Status> {
@@ -297,6 +303,9 @@ impl LocalWallet for LocalWalletService {
     async fn import_zkey(&self, request: Request<ImportZkeyRequest>) -> Result<Response<StatusResponse>, Status> {
         println!("INFO request {:?} {:?}", request.remote_addr(), request.get_ref());
 
+        todo!()
+
+        /*
         let address = &request.get_ref().address;
 
         let reply = match *(*self.wallet).write().unwrap() {
@@ -328,6 +337,7 @@ impl LocalWallet for LocalWalletService {
             },
         };
         Ok(Response::new(reply))
+        */
     }
 
     async fn import_note(&self, _request: Request<ImportNoteRequest>) -> Result<Response<StatusResponse>, Status> {
@@ -339,7 +349,7 @@ impl LocalWallet for LocalWalletService {
         request: Request<GetExpandedSpendingKeyRequest>,
     ) -> Result<Response<GetExpandedSpendingKeyResponse>, Status> {
         println!("INFO request {:?} {:?}", request.remote_addr(), request.get_ref());
-        let _address = &request.get_ref().address.parse::<ZAddress>()?;
+       // let _address = &request.get_ref().address.parse::<ZAddress>()?;
         unimplemented!()
     }
 }
@@ -382,6 +392,8 @@ async fn tokio_main() -> Result<(), Box<dyn std::error::Error>> {
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     use std::fs::File;
 
+    use tokio::runtime::Runtime;
+
     let stdout = File::create("./.tmp.walletd.out").unwrap();
     let stderr = File::create("./.tmp.walletd.err").unwrap();
 
@@ -392,7 +404,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let fut = tokio_main();
-    let mut rt = Builder::new().basic_scheduler().enable_all().build()?;
+    // Create the runtime
+    let rt  = Runtime::new()?;
     rt.block_on(fut)
 }
 

@@ -1,39 +1,33 @@
-use aes::Aes256;
-use cfb_mode::cipher::{NewStreamCipher, StreamCipher};
-use cfb_mode::Cfb;
+use cfb_mode::cipher::{AsyncStreamCipher, KeyIvInit};
 use sha2::{Digest, Sha512};
-use std::mem;
+use std::{convert::TryInto, mem};
 
 use crate::error::Error;
 
-type AesCfb = Cfb<Aes256>;
+type Aes256CfbEnc = cfb_mode::Encryptor<aes::Aes256>;
+type Aes256CfbDec = cfb_mode::Decryptor<aes::Aes256>;
 
 // NOTE: key, sha512 key
 pub fn aes_encrypt(key: &[u8], plain_text: &[u8]) -> Result<Vec<u8>, Error> {
-    let iv = &key[32..48]; // BlockSize [u8; 16]
-    let key = &key[..32]; //  KeySize [u8; 32]
+    let iv: [u8; 16] = key[32..48].try_into().unwrap(); // BlockSize [u8; 16]
+    let key: [u8; 32] = key[..32].try_into().unwrap(); //  KeySize [u8; 32]
 
     let mut buffer = plain_text.to_owned();
 
     // encrypt plaintext
-    AesCfb::new_var(key, iv)
-        .map_err(|e| {
-            eprintln!("error => {:?}", e);
-            Error::Runtime("InvalidKeyNonceLength")
-        })?
+    Aes256CfbEnc::new(&key.into(), &iv.into())
         .encrypt(&mut buffer);
 
     Ok(buffer)
 }
 
 pub fn aes_decrypt(key: &[u8], cipher_text: &[u8]) -> Result<Vec<u8>, Error> {
-    let iv = &key[32..48];
-    let key = &key[..32];
+    let iv: [u8; 16] = key[32..48].try_into().unwrap(); // BlockSize [u8; 16]
+    let key: [u8; 32] = key[..32].try_into().unwrap(); //  KeySize [u8; 32]
 
     let mut buffer = cipher_text.to_owned();
 
-    AesCfb::new_var(key, iv)
-        .map_err(|_| Error::Runtime("InvalidKeyNonceLength"))?
+    Aes256CfbDec::new(&key.into(), &iv.into())
         .decrypt(&mut buffer);
 
     Ok(buffer)

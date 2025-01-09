@@ -6,8 +6,8 @@ use clap::ArgMatches;
 use futures::executor;
 use hex::FromHex;
 use keys::Address;
-use proto::api::{BytesMessage, DelegatedResourceMessage, EmptyMessage, NumberMessage};
-use proto::core::Account;
+use proto::{BytesMessage, DelegatedResourceMessage, EmptyMessage, NumberMessage};
+use proto::Account;
 use serde_json::json;
 
 use crate::error::Error;

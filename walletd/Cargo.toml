@@ -2,24 +2,24 @@
 name = "walletd"
 version = "0.1.0"
 authors = ["Andelf <andelf@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tonic = "0.3"
+tonic = "0.12"
 bytes = "1.0"
-prost = "0.6"
+prost = "0.13"
 
-tokio = { version = "0.2", features = ["rt-threaded", "time", "stream", "fs", "macros", "uds"] }
+tokio = { version = "1", features = ["full"] }
 futures = { version = "0.3", default-features = false, features = ["alloc"] }
 
 keys = { path = "../keys" }
 wallet = { path = "../wallet" }
-ztron = { git = "https://github.com/opentron/opentron" }
+# ztron = { git = "https://github.com/opentron/opentron" }
 
 [build-dependencies]
-tonic-build = "0.3"
+tonic-build = "0.12"
 
 [target.'cfg(unix)'.dependencies]
-daemonize = "0.4"
+daemonize = "0.5"
