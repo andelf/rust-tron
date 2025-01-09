@@ -1,8 +1,8 @@
 use clap::load_yaml;
 
-// mod commands;
+//mod commands;
 mod error;
-// mod utils;
+mod utils;
 
 use error::Error;
 use proto::wallet_client::WalletClient;
@@ -53,7 +53,10 @@ async fn main() -> Result<(), Error> {
 
     let resp = wallet_client.get_account(req).await?.into_inner();
 
-    println!("RESPONSE={}", serde_json::to_string_pretty(&resp).unwrap());
+    let mut ret = serde_json::to_value(resp)?;
+    utils::jsont::fix_account(&mut ret);
+
+    println!("RESPONSE={}", serde_json::to_string_pretty(&ret).unwrap());
 
     match matches.subcommand() {
         // ("get", Some(arg_matches)) => commands::get::main(arg_matches),

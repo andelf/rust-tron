@@ -28,4 +28,5 @@ proto = { path = "../proto" }
 keys = { path = "../keys" }
 walletd = { path = "../walletd" }
 prost-types = "0.13.4"
+prost = "0.13.4"
 # ztron = { git = "https://github.com/opentron/opentron" }

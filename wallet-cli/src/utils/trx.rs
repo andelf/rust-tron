@@ -5,23 +5,23 @@ use clap::ArgMatches;
 use futures::executor;
 use hex::{FromHex, ToHex};
 use keys::{Address, Private};
-use proto::api::{BytesMessage, NumberMessage};
-use proto::core::SmartContract_ABI_Entry as AbiEntry;
-use proto::core::{
+use prost::Message;
+use prost_types::Any;
+use proto::smart_contract::abi::Entry as AbiEntry;
+use proto::{
+    transaction::contract as Contract, transaction::contract::ContractType, transaction::Raw as TransactionRaw,
+    transaction_info::Code as TransactionInfoCode, Transaction, TransactionInfo,
+};
+use proto::{
     AccountCreateContract, AccountPermissionUpdateContract, AccountUpdateContract, AssetIssueContract,
-    ClearABIContract, CreateSmartContract, ExchangeCreateContract, ExchangeInjectContract, ExchangeTransactionContract,
+    ClearAbiContract, CreateSmartContract, ExchangeCreateContract, ExchangeInjectContract, ExchangeTransactionContract,
     ExchangeWithdrawContract, FreezeBalanceContract, ParticipateAssetIssueContract, ProposalApproveContract,
     ProposalCreateContract, ProposalDeleteContract, SetAccountIdContract, ShieldedTransferContract,
     TransferAssetContract, TransferContract, TriggerSmartContract, UnfreezeAssetContract, UnfreezeBalanceContract,
     UpdateAssetContract, UpdateBrokerageContract, UpdateEnergyLimitContract, UpdateSettingContract, VoteAssetContract,
     VoteWitnessContract, WithdrawBalanceContract, WitnessCreateContract, WitnessUpdateContract,
 };
-use proto::core::{
-    Transaction, TransactionInfo, TransactionInfo_code as TransactionInfoCode, Transaction_Contract as Contract,
-    Transaction_Contract_ContractType as ContractType, Transaction_raw as TransactionRaw,
-};
-use protobuf::well_known_types::Any;
-use protobuf::{parse_from_bytes, Message};
+use proto::{BytesMessage, NumberMessage};
 use serde_json::json;
 use std::convert::TryFrom;
 use std::thread;
@@ -108,7 +108,7 @@ pub fn extract_owner_address_from_parameter(any: &Any) -> Result<Address, Error>
             parse_from_bytes::<UpdateEnergyLimitContract>(any.get_value())?.get_owner_address(),
         )?),
         "type.googleapis.com/protocol.ClearABIContract" => Ok(Address::try_from(
-            parse_from_bytes::<ClearABIContract>(any.get_value())?.get_owner_address(),
+            parse_from_bytes::<ClearAbiContract>(any.get_value())?.get_owner_address(),
         )?),
         "type.googleapis.com/protocol.UpdateAssetContract" => Ok(Address::try_from(
             parse_from_bytes::<UpdateAssetContract>(any.get_value())?.get_owner_address(),

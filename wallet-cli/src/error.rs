@@ -8,6 +8,8 @@ pub enum Error {
     Fmt(#[from] ::std::fmt::Error),
     #[error("serde error: {0:?}")]
     Serde(#[from] ::serde_json::error::Error),
+    #[error("prost error: {0:?}")]
+    Prost(#[from] ::prost::DecodeError),
     //#[error("grpc error: {0:?}")]
     //Grpc(#[from] ::grpc::Error),
     #[error("grpc: {0:}")]

@@ -2251,6 +2251,7 @@ dependencies = [
  "keys",
  "lazy_static",
  "primitive-types 0.13.1",
+ "prost",
  "prost-types",
  "proto",
  "rand 0.8.5",
