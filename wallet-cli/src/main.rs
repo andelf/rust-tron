@@ -53,7 +53,7 @@ async fn main() -> Result<(), Error> {
 
     let resp = wallet_client.get_account(req).await?.into_inner();
 
-    println!("RESPONSE={:?}", resp);
+    println!("RESPONSE={}", serde_json::to_string_pretty(&resp).unwrap());
 
     match matches.subcommand() {
         // ("get", Some(arg_matches)) => commands::get::main(arg_matches),

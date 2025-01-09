@@ -9,6 +9,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_build::configure()
         .build_server(false)
         .build_client(true)
+        .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
+        // the trait `Deserialize<'_>` is not implemented for `prost_types::Any`
+        .field_attribute("Contract.parameter", "#[serde(default, skip_deserializing, skip_serializing)]")
         // .extern_path("./protocol", "::")
         .out_dir("./src")
         .compile_protos(
